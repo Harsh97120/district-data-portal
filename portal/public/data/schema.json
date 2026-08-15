@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "District Metrics",
+  "description": "Schema for NFHS-5 district-level data files (data/metrics/*.json)",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "district_id",
+      "district_name",
+      "state_code",
+      "state_name",
+      "literacy_rate",
+      "sex_ratio",
+      "households_surveyed",
+      "women_interviewed",
+      "men_interviewed",
+      "child_population_pct",
+      "household_size_avg",
+      "metadata"
+    ],
+    "properties": {
+      "district_id": {
+        "type": "string",
+        "description": "Unique identifier: state_code + '-' + district_name (e.g. GJ-Valsad)",
+        "pattern": "^[A-Z]{2}-.+"
+      },
+      "district_name": {
+        "type": "string",
+        "description": "Display name matching GeoJSON DISTRICT property"
+      },
+      "state_code": {
+        "type": "string",
+        "description": "2-letter state code (e.g. GJ)",
+        "pattern": "^[A-Z]{2}$"
+      },
+      "state_name": {
+        "type": "string"
+      },
+      "literacy_rate": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 100,
+        "description": "Overall literacy rate (%)"
+      },
+      "sex_ratio": {
+        "type": "number",
+        "minimum": 500,
+        "maximum": 1200,
+        "description": "Number of females per 1,000 males"
+      },
+      "households_surveyed": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Number of households surveyed"
+      },
+      "women_interviewed": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Number of women aged 15-49 years interviewed"
+      },
+      "men_interviewed": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Number of men aged 15-54 years interviewed"
+      },
+      "child_population_pct": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 100,
+        "description": "Percentage of population under 15 years"
+      },
+      "household_size_avg": {
+        "type": "number",
+        "minimum": 1,
+        "description": "Average household size"
+      },
+      "metadata": {
+        "type": "object",
+        "required": ["source", "year"],
+        "properties": {
+          "source": { "type": "string" },
+          "year": { "type": "string" }
+        }
+      }
+    },
+    "additionalProperties": true
+  }
+}

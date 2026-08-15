@@ -1,0 +1,563 @@
+[
+  {
+    "district_id": "GJ-Ahmedabad",
+    "district_name": "Ahmedabad",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 87.0,
+    "sex_ratio": 902,
+    "households_surveyed": 2850,
+    "women_interviewed": 3420,
+    "men_interviewed": 1540,
+    "child_population_pct": 26.1,
+    "household_size_avg": 4.2,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Amreli",
+    "district_name": "Amreli",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 77.6,
+    "sex_ratio": 973,
+    "households_surveyed": 1520,
+    "women_interviewed": 1810,
+    "men_interviewed": 820,
+    "child_population_pct": 29.4,
+    "household_size_avg": 4.0,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Anand",
+    "district_name": "Anand",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 84.4,
+    "sex_ratio": 921,
+    "households_surveyed": 1780,
+    "women_interviewed": 2100,
+    "men_interviewed": 950,
+    "child_population_pct": 27.3,
+    "household_size_avg": 4.1,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Aravalli",
+    "district_name": "Aravalli",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 72.1,
+    "sex_ratio": 958,
+    "households_surveyed": 1340,
+    "women_interviewed": 1580,
+    "men_interviewed": 710,
+    "child_population_pct": 31.8,
+    "household_size_avg": 4.4,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Banaskantha",
+    "district_name": "Banaskantha",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 68.5,
+    "sex_ratio": 944,
+    "households_surveyed": 1950,
+    "women_interviewed": 2310,
+    "men_interviewed": 1040,
+    "child_population_pct": 33.2,
+    "household_size_avg": 4.6,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Bharuch",
+    "district_name": "Bharuch",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 80.7,
+    "sex_ratio": 925,
+    "households_surveyed": 1620,
+    "women_interviewed": 1920,
+    "men_interviewed": 870,
+    "child_population_pct": 28.9,
+    "household_size_avg": 4.2,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Bhavnagar",
+    "district_name": "Bhavnagar",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 79.2,
+    "sex_ratio": 953,
+    "households_surveyed": 1870,
+    "women_interviewed": 2230,
+    "men_interviewed": 1000,
+    "child_population_pct": 29.7,
+    "household_size_avg": 4.3,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Botad",
+    "district_name": "Botad",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 80.0,
+    "sex_ratio": 942,
+    "households_surveyed": 1200,
+    "women_interviewed": 1430,
+    "men_interviewed": 645,
+    "child_population_pct": 28.1,
+    "household_size_avg": 4.2,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Chhota Udaipur",
+    "district_name": "Chhota Udaipur",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 63.9,
+    "sex_ratio": 990,
+    "households_surveyed": 1280,
+    "women_interviewed": 1510,
+    "men_interviewed": 680,
+    "child_population_pct": 35.6,
+    "household_size_avg": 4.7,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Dahod",
+    "district_name": "Dahod",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 62.7,
+    "sex_ratio": 989,
+    "households_surveyed": 1650,
+    "women_interviewed": 1960,
+    "men_interviewed": 880,
+    "child_population_pct": 36.4,
+    "household_size_avg": 4.8,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Devbhoomi Dwarka",
+    "district_name": "Devbhoomi Dwarka",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 78.3,
+    "sex_ratio": 932,
+    "households_surveyed": 1100,
+    "women_interviewed": 1290,
+    "men_interviewed": 585,
+    "child_population_pct": 27.5,
+    "household_size_avg": 4.0,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Gandhinagar",
+    "district_name": "Gandhinagar",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 88.5,
+    "sex_ratio": 889,
+    "households_surveyed": 1490,
+    "women_interviewed": 1760,
+    "men_interviewed": 798,
+    "child_population_pct": 24.9,
+    "household_size_avg": 3.9,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Gir Somnath",
+    "district_name": "Gir Somnath",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 76.8,
+    "sex_ratio": 961,
+    "households_surveyed": 1310,
+    "women_interviewed": 1540,
+    "men_interviewed": 695,
+    "child_population_pct": 29.1,
+    "household_size_avg": 4.2,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Jamnagar",
+    "district_name": "Jamnagar",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 79.9,
+    "sex_ratio": 932,
+    "households_surveyed": 1730,
+    "women_interviewed": 2050,
+    "men_interviewed": 930,
+    "child_population_pct": 27.8,
+    "household_size_avg": 4.1,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Junagadh",
+    "district_name": "Junagadh",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 78.5,
+    "sex_ratio": 953,
+    "households_surveyed": 1880,
+    "women_interviewed": 2240,
+    "men_interviewed": 1010,
+    "child_population_pct": 29.0,
+    "household_size_avg": 4.3,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Kheda",
+    "district_name": "Kheda",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 83.1,
+    "sex_ratio": 938,
+    "households_surveyed": 1760,
+    "women_interviewed": 2080,
+    "men_interviewed": 940,
+    "child_population_pct": 27.6,
+    "household_size_avg": 4.2,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Kutch",
+    "district_name": "Kutch",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 71.9,
+    "sex_ratio": 909,
+    "households_surveyed": 2010,
+    "women_interviewed": 2370,
+    "men_interviewed": 1070,
+    "child_population_pct": 31.3,
+    "household_size_avg": 4.5,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Mahisagar",
+    "district_name": "Mahisagar",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 74.2,
+    "sex_ratio": 967,
+    "households_surveyed": 1150,
+    "women_interviewed": 1360,
+    "men_interviewed": 615,
+    "child_population_pct": 30.5,
+    "household_size_avg": 4.4,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Mehsana",
+    "district_name": "Mehsana",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 85.3,
+    "sex_ratio": 897,
+    "households_surveyed": 1820,
+    "women_interviewed": 2160,
+    "men_interviewed": 977,
+    "child_population_pct": 25.8,
+    "household_size_avg": 4.0,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Morbi",
+    "district_name": "Morbi",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 82.0,
+    "sex_ratio": 907,
+    "households_surveyed": 1380,
+    "women_interviewed": 1630,
+    "men_interviewed": 736,
+    "child_population_pct": 26.9,
+    "household_size_avg": 4.1,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Narmada",
+    "district_name": "Narmada",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 70.6,
+    "sex_ratio": 981,
+    "households_surveyed": 1090,
+    "women_interviewed": 1290,
+    "men_interviewed": 583,
+    "child_population_pct": 32.4,
+    "household_size_avg": 4.5,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Navsari",
+    "district_name": "Navsari",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 83.6,
+    "sex_ratio": 955,
+    "households_surveyed": 1560,
+    "women_interviewed": 1850,
+    "men_interviewed": 836,
+    "child_population_pct": 27.2,
+    "household_size_avg": 4.1,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Panchmahal",
+    "district_name": "Panchmahal",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 73.8,
+    "sex_ratio": 965,
+    "households_surveyed": 1720,
+    "women_interviewed": 2040,
+    "men_interviewed": 920,
+    "child_population_pct": 31.1,
+    "household_size_avg": 4.5,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Patan",
+    "district_name": "Patan",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 73.5,
+    "sex_ratio": 940,
+    "households_surveyed": 1430,
+    "women_interviewed": 1690,
+    "men_interviewed": 765,
+    "child_population_pct": 30.7,
+    "household_size_avg": 4.4,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Porbandar",
+    "district_name": "Porbandar",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 80.1,
+    "sex_ratio": 952,
+    "households_surveyed": 1010,
+    "women_interviewed": 1200,
+    "men_interviewed": 541,
+    "child_population_pct": 27.4,
+    "household_size_avg": 4.1,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Rajkot",
+    "district_name": "Rajkot",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 84.9,
+    "sex_ratio": 921,
+    "households_surveyed": 2450,
+    "women_interviewed": 2910,
+    "men_interviewed": 1310,
+    "child_population_pct": 26.5,
+    "household_size_avg": 4.1,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Sabarkantha",
+    "district_name": "Sabarkantha",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 78.9,
+    "sex_ratio": 958,
+    "households_surveyed": 1680,
+    "women_interviewed": 2000,
+    "men_interviewed": 903,
+    "child_population_pct": 29.5,
+    "household_size_avg": 4.3,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Surat",
+    "district_name": "Surat",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 85.7,
+    "sex_ratio": 788,
+    "households_surveyed": 3100,
+    "women_interviewed": 3640,
+    "men_interviewed": 1640,
+    "child_population_pct": 27.8,
+    "household_size_avg": 4.3,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Surendranagar",
+    "district_name": "Surendranagar",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 75.8,
+    "sex_ratio": 941,
+    "households_surveyed": 1590,
+    "women_interviewed": 1880,
+    "men_interviewed": 850,
+    "child_population_pct": 30.3,
+    "household_size_avg": 4.3,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Tapi",
+    "district_name": "Tapi",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 70.9,
+    "sex_ratio": 982,
+    "households_surveyed": 1190,
+    "women_interviewed": 1410,
+    "men_interviewed": 637,
+    "child_population_pct": 32.7,
+    "household_size_avg": 4.5,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Vadodara",
+    "district_name": "Vadodara",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 86.4,
+    "sex_ratio": 928,
+    "households_surveyed": 2310,
+    "women_interviewed": 2730,
+    "men_interviewed": 1230,
+    "child_population_pct": 25.7,
+    "household_size_avg": 4.0,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Valsad",
+    "district_name": "Valsad",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 82.4,
+    "sex_ratio": 943,
+    "households_surveyed": 1820,
+    "women_interviewed": 2150,
+    "men_interviewed": 918,
+    "child_population_pct": 28.3,
+    "household_size_avg": 4.1,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  },
+  {
+    "district_id": "GJ-Mahesana",
+    "district_name": "Mahesana",
+    "state_code": "GJ",
+    "state_name": "Gujarat",
+    "literacy_rate": 85.3,
+    "sex_ratio": 897,
+    "households_surveyed": 1640,
+    "women_interviewed": 1940,
+    "men_interviewed": 878,
+    "child_population_pct": 25.8,
+    "household_size_avg": 4.0,
+    "metadata": {
+      "source": "NFHS-5",
+      "year": "2019-21"
+    }
+  }
+]
