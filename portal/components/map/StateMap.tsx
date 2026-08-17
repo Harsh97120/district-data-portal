@@ -71,8 +71,7 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
 
       L.control.zoom({ position: "topright" }).addTo(map);
       L.control.attribution({ position: "bottomright", prefix: false })
-        .addTo(map)
-        .setPrefix('© <a href="https://github.com/datta07/INDIAN-SHAPEFILES">datta07</a>');
+        .addTo(map);
 
       // Load both GeoJSON and metrics in parallel
       const [geojson, metrics] = await Promise.all([

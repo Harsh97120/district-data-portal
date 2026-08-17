@@ -22,17 +22,7 @@ export default function Footer() {
               </a>
               , MoHFW, Government of India
             </p>
-            <p>
-              District boundaries:{" "}
-              <a
-                href="https://github.com/datta07/INDIAN-SHAPEFILES"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-orange-400 hover:underline"
-              >
-                datta07/INDIAN-SHAPEFILES
-              </a>
-            </p>
+
           </div>
         </div>
       </div>

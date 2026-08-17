@@ -51,8 +51,7 @@ export default function IndiaMap() {
       // Custom zoom control (top-right)
       L.control.zoom({ position: "topright" }).addTo(map);
       L.control.attribution({ position: "bottomright", prefix: false })
-        .addTo(map)
-        .setPrefix('© <a href="https://github.com/datta07/INDIAN-SHAPEFILES">datta07</a>');
+        .addTo(map);
 
       // Load India states GeoJSON
       const geojson = await fetchGeoJSON("/data/boundaries/india-states.geojson");

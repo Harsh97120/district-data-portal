@@ -61,6 +61,11 @@ const REQUIRED_FIELDS = [
   "district_id", "district_name", "state_code", "state_name",
   "literacy_rate", "sex_ratio", "households_surveyed",
   "women_interviewed", "men_interviewed",
+  "health_insurance", "institutional_births", "anc_4_visits", "pnc_within_2_days", "full_vaccination", "bp_screening", "diabetes_screening",
+  "child_stunting", "child_wasting", "child_underweight", "child_anaemia", "women_anaemia", "exclusive_breastfeeding", "adequate_diet",
+  "women_schooling_10_years", "early_marriage", "teenage_pregnancy", "modern_contraceptive", "women_bank_account", "women_decision_making",
+  "school_attendance_6_17", "dropout_rate", "learning_proficiency", "retention_rate",
+  "electricity_access", "drinking_water_improved", "sanitation_facility_improved", "clean_cooking_fuel", "housing_solid", "internet_access"
 ];
 
 for (const file of metricFiles) {
