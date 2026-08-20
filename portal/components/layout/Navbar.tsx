@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { STATE_BY_CODE } from "@/lib/constants";
 
 type AuthMode = "login" | "register" | null;
 
@@ -12,6 +14,33 @@ export default function Navbar() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+
+  const pathname = usePathname();
+  const [activeStateCode, setActiveStateCode] = useState("");
+  const [activeStateName, setActiveStateName] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname;
+      const parts = path.split("/");
+      let code = "";
+      if (parts[1] === "state" && parts[2]) {
+        code = parts[2].toUpperCase();
+      } else if (parts[1] === "district" && parts[2]) {
+        const decoded = decodeURIComponent(parts[2]);
+        code = decoded.split("-")[0].toUpperCase();
+      }
+
+      if (code) {
+        setActiveStateCode(code);
+        const stateInfo = STATE_BY_CODE[code];
+        setActiveStateName(stateInfo?.name || code);
+      } else {
+        setActiveStateCode("");
+        setActiveStateName("");
+      }
+    }
+  }, [pathname]);
 
   const handleAuthSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,9 +79,11 @@ export default function Navbar() {
                 <Link href="/" className="hover:text-white transition-colors">
                   Home
                 </Link>
-                <Link href="/state/GJ" className="hover:text-white transition-colors">
-                  Gujarat
-                </Link>
+                {activeStateName && activeStateCode && (
+                  <Link href={`/state/${activeStateCode}`} className="text-white border-b border-orange-500 pb-0.5 transition-colors">
+                    {activeStateName}
+                  </Link>
+                )}
                 <span className="px-3 py-1 bg-orange-500/10 text-orange-400 border border-orange-500/30 rounded-full text-xs font-medium mr-2">
                   NFHS-5 Data
                 </span>
@@ -96,10 +127,12 @@ export default function Navbar() {
                 className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
                 Home
               </Link>
-              <Link href="/state/GJ" onClick={() => setMenuOpen(false)}
-                className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-                Gujarat
-              </Link>
+              {activeStateName && activeStateCode && (
+                <Link href={`/state/${activeStateCode}`} onClick={() => setMenuOpen(false)}
+                  className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                  {activeStateName}
+                </Link>
+              )}
               <div className="h-px bg-[#2D3148] my-2 mx-4" />
               <div className="px-4">
                 <button

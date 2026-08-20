@@ -12,34 +12,34 @@ const statesWithData = STATES.filter((s) => s.hasData);
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col flex-1 lg:h-[calc(100vh-64px)] lg:overflow-hidden">
 
       {/* Hero strip */}
-      <section className="relative px-4 sm:px-6 lg:px-8 py-8 border-b border-[#2D3148]">
+      <section className="relative px-4 sm:px-6 lg:px-8 py-5 border-b border-[#2D3148] flex-shrink-0">
         <div className="max-w-4xl">
-          <div className="flex items-center gap-2 text-orange-400 text-xs font-semibold uppercase tracking-widest mb-3">
+          <div className="flex items-center gap-2 text-orange-400 text-xs font-semibold uppercase tracking-widest mb-2">
             <span className="w-5 h-px bg-orange-400" />
             NFHS-5 · 2019–21
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-white leading-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
             India District
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-300"> Data Portal</span>
           </h1>
-          <p className="text-gray-400 mt-3 text-base max-w-2xl">
+          <p className="text-gray-400 mt-1.5 text-xs sm:text-sm max-w-2xl">
             Explore demographic indicators across Indian districts. Click any state on the map to drill down into district-level data from the National Family Health Survey.
           </p>
 
           {/* Stat pills */}
-          <div className="flex flex-wrap gap-3 mt-5">
+          <div className="flex flex-wrap gap-2 mt-4">
             {[
               { label: "States & UTs", value: "36" },
               { label: "Districts", value: "700+" },
               { label: "Indicators", value: "131" },
-              { label: "Survey Year", value: "2019–21" },
+              { label: "Survey Cycle", value: "NFHS-6 (2023–24)" },
             ].map(({ label, value }) => (
-              <div key={label} className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1A1D27] border border-[#2D3148]">
-                <span className="text-orange-400 font-bold text-sm">{value}</span>
-                <span className="text-gray-500 text-xs">{label}</span>
+              <div key={label} className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#1A1D27] border border-[#2D3148] text-xs">
+                <span className="text-orange-400 font-bold">{value}</span>
+                <span className="text-gray-500">{label}</span>
               </div>
             ))}
           </div>
@@ -50,16 +50,16 @@ export default function HomePage() {
       </section>
 
       {/* Map + States list */}
-      <section className="flex flex-col lg:flex-row flex-1 min-h-[520px]">
+      <section className="flex flex-col lg:flex-row flex-1 min-h-[450px] lg:min-h-0 overflow-hidden">
 
         {/* Interactive map */}
-        <div className="relative flex-1 min-h-[400px] lg:min-h-0">
+        <div className="relative flex-1 min-h-[350px] lg:min-h-0">
           <IndiaMapWrapper />
         </div>
 
         {/* States sidebar */}
-        <aside className="w-full lg:w-72 xl:w-80 bg-[#1A1D27] border-t lg:border-t-0 lg:border-l border-[#2D3148] flex flex-col">
-          <div className="px-4 py-3 border-b border-[#2D3148]">
+        <aside className="w-full lg:w-72 xl:w-80 bg-[#1A1D27] border-t lg:border-t-0 lg:border-l border-[#2D3148] flex flex-col min-h-0">
+          <div className="px-4 py-3 border-b border-[#2D3148] flex-shrink-0">
             <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
               States with data
             </h2>

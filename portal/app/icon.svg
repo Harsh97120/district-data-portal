@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <mask id="round-corners">
+    <rect width="32" height="32" rx="6" fill="white" />
+  </mask>
+  <g mask="url(#round-corners)">
+    <!-- Tricolor stripes -->
+    <rect y="0" width="32" height="10.67" fill="#FF9933" />
+    <rect y="10.67" width="32" height="10.67" fill="#FFFFFF" />
+    <rect y="21.33" width="32" height="10.67" fill="#138808" />
+    
+    <!-- Ashoka Chakra (Blue wheel) in the center of the white stripe -->
+    <!-- Center of white stripe is at y = 16, x = 16 -->
+    <!-- Outer circle of the Chakra -->
+    <circle cx="16" cy="16" r="3.5" fill="none" stroke="#000080" stroke-width="0.8" />
+    <!-- Center hub -->
+    <circle cx="16" cy="16" r="0.8" fill="#000080" />
+    <!-- Spokes representation -->
+    <g stroke="#000080" stroke-width="0.3">
+      <line x1="16" y1="12.5" x2="16" y2="19.5" />
+      <line x1="12.5" y1="16" x2="19.5" y2="16" />
+      <line x1="13.5" y1="13.5" x2="18.5" y2="18.5" />
+      <line x1="13.5" y1="18.5" x2="18.5" y2="13.5" />
+      <line x1="14.3" y1="12.8" x2="17.7" y2="19.2" />
+      <line x1="17.7" y1="12.8" x2="14.3" y2="19.2" />
+      <line x1="12.8" y1="14.3" x2="19.2" y2="17.7" />
+      <line x1="12.8" y1="17.7" x2="19.2" y2="14.3" />
+    </g>
+  </g>
+</svg>

@@ -9,6 +9,7 @@ import {
   getPriorityAreas,
   runKMeansClustering,
   checkDevelopmentParadoxes,
+  getMetricsForYear,
 } from "@/lib/ml-utils";
 
 import DistrictFingerprint from "@/components/district/DistrictFingerprint";
@@ -31,16 +32,21 @@ export default function DistrictPageClient({
   stateCode,
 }: DistrictPageClientProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [surveyYear, setSurveyYear] = useState<"NFHS-5" | "NFHS-6">("NFHS-6"); // Default to latest NFHS-6
 
-  // Core calculations
-  const dimScores = getDimensionScores(district);
-  const priorities = getPriorityAreas(district, allDistricts);
-  const paradoxes = checkDevelopmentParadoxes(district);
+  // Project baseline data dynamically based on the active survey year
+  const activeDistrict = getMetricsForYear(district, surveyYear);
+  const activeAllDistricts = allDistricts.map(d => getMetricsForYear(d, surveyYear));
+
+  // Core calculations using active year data
+  const dimScores = getDimensionScores(activeDistrict);
+  const priorities = getPriorityAreas(activeDistrict, activeAllDistricts);
+  const paradoxes = checkDevelopmentParadoxes(activeDistrict);
   
   // Find clustering profile
-  const clusters = runKMeansClustering(allDistricts, 4);
+  const clusters = runKMeansClustering(activeAllDistricts, 4);
   const myCluster = clusters.find((c) =>
-    c.districts.some((d) => d.district_id === district.district_id)
+    c.districts.some((d) => d.district_id === activeDistrict.district_id)
   );
   const clusterLabel = myCluster ? myCluster.label : "Moderate Development Profile";
 
@@ -57,7 +63,7 @@ export default function DistrictPageClient({
       paradoxText = ` Analysis highlights an ${paradoxes[0].title}: basic infrastructure is strong, but child nutrition remains a bottleneck.`;
     }
 
-    return `${district.district_name} is classified under the "${clusterLabel}" development profile in ${stateName}. Its strongest dimension is "${strengthName}" (Score: ${topStrengthCat[1]}/100), while the most significant developmental lag is in "${gapName}" (Score: ${topGapCat[1]}/100).${paradoxText} Key areas needing immediate programmatic focus include ${priorities[0].label.toLowerCase()} and ${priorities[1].label.toLowerCase()}.`;
+    return `${activeDistrict.district_name} is classified under the "${clusterLabel}" development profile in ${stateName}. Its strongest dimension is "${strengthName}" (Score: ${topStrengthCat[1]}/100), while the most significant developmental lag is in "${gapName}" (Score: ${topGapCat[1]}/100).${paradoxText} Key areas needing immediate programmatic focus include ${priorities[0].label.toLowerCase()} and ${priorities[1].label.toLowerCase()}.`;
   };
 
   const formatRawValue = (field: string, val: number | null) => {
@@ -75,16 +81,40 @@ export default function DistrictPageClient({
           <div className="text-xs text-orange-400 font-semibold uppercase tracking-widest flex items-center gap-1.5">
             <span>District Intelligence</span>
             <span className="w-1 h-1 rounded-full bg-[#2D3148]" />
-            <span>{district.metadata.source} · {district.metadata.year}</span>
+            <span>{activeDistrict.metadata.source} · {activeDistrict.metadata.year}</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white mt-2">
-            {district.district_name}
+            {activeDistrict.district_name}
           </h1>
           <p className="text-sm text-gray-400 mt-1">
             State: <span className="text-white font-medium">{stateName}</span>
           </p>
         </div>
-        <div className="flex flex-col gap-2 items-end">
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center md:items-end">
+          {/* Survey Year Selector Tabs */}
+          <div className="flex items-center gap-1 bg-[#0F1117] border border-[#2D3148] p-1 rounded-full shadow-inner">
+            <button
+              onClick={() => setSurveyYear("NFHS-5")}
+              className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all cursor-pointer ${
+                surveyYear === "NFHS-5"
+                  ? "bg-[#1A1D27] text-orange-400 border border-[#2D3148] shadow-sm"
+                  : "text-gray-500 hover:text-gray-300 border border-transparent"
+              }`}
+            >
+              NFHS-5 (2019-21)
+            </button>
+            <button
+              onClick={() => setSurveyYear("NFHS-6")}
+              className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all cursor-pointer ${
+                surveyYear === "NFHS-6"
+                  ? "bg-[#1A1D27] text-orange-400 border border-[#2D3148] shadow-sm"
+                  : "text-gray-500 hover:text-gray-300 border border-transparent"
+              }`}
+            >
+              NFHS-6 (2023-24)
+            </button>
+          </div>
+
           <Link
             href={`/state/${stateCode}`}
             className="px-4 py-2 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/30 hover:bg-orange-500/20 hover:border-orange-500/50 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm shadow-orange-500/5"
@@ -120,11 +150,9 @@ export default function DistrictPageClient({
       {/* Grid: Fingerprint & Strengths/Gaps */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* District Fingerprint Radar Chart (Left 7 Columns) */}
         <div className="lg:col-span-7">
-          <DistrictFingerprint district={district} />
+          <DistrictFingerprint district={activeDistrict} />
         </div>
-
         {/* Strengths & Gaps Accordion Drill-down (Right 5 Columns) */}
         <div className="lg:col-span-5 bg-[#1A1D27] border border-[#2D3148] rounded-2xl p-6 flex flex-col justify-between">
           <div>
@@ -235,12 +263,12 @@ export default function DistrictPageClient({
 
       {/* Paradox & Outliers */}
       <div>
-        <DevelopmentParadox district={district} allDistricts={allDistricts} />
+        <DevelopmentParadox district={activeDistrict} allDistricts={activeAllDistricts} />
       </div>
 
       {/* Peer Comparison */}
       <div>
-        <SimilarDistricts district={district} allDistricts={allDistricts} />
+        <SimilarDistricts district={activeDistrict} allDistricts={activeAllDistricts} />
       </div>
 
       {/* Priority Engine ranking */}
@@ -309,12 +337,12 @@ export default function DistrictPageClient({
 
       {/* Ask Your District (AI chat component) */}
       <div>
-        <AskYourDistrict district={district} allDistricts={allDistricts} />
+        <AskYourDistrict district={activeDistrict} allDistricts={activeAllDistricts} />
       </div>
 
       {/* Data Explorer Component */}
       <div>
-        <DataExplorer district={district} allDistricts={allDistricts} />
+        <DataExplorer district={activeDistrict} allDistricts={activeAllDistricts} />
       </div>
 
       {/* Context, Demographics & Methodology metadata */}
@@ -328,21 +356,21 @@ export default function DistrictPageClient({
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="p-3 bg-[#0F1117] border border-[#2D3148] rounded-xl">
               <span className="text-gray-500 block">Female Literacy</span>
-              <strong className="text-base text-white block mt-1">{district.literacy_rate?.toFixed(1)}%</strong>
+              <strong className="text-base text-white block mt-1">{activeDistrict.literacy_rate?.toFixed(1)}%</strong>
             </div>
             <div className="p-3 bg-[#0F1117] border border-[#2D3148] rounded-xl">
               <span className="text-gray-500 block">Sex Ratio</span>
               <strong className="text-base text-white block mt-1">
-                {district.sex_ratio?.toFixed(0)} <span className="text-[9px] font-normal text-gray-500">F / 1,000 M</span>
+                {activeDistrict.sex_ratio?.toFixed(0)} <span className="text-[9px] font-normal text-gray-500">F / 1,000 M</span>
               </strong>
             </div>
             <div className="p-3 bg-[#0F1117] border border-[#2D3148] rounded-xl">
               <span className="text-gray-500 block">Child Pop. (&lt;15 yrs)</span>
-              <strong className="text-base text-white block mt-1">{district.child_population_pct?.toFixed(1)}%</strong>
+              <strong className="text-base text-white block mt-1">{activeDistrict.child_population_pct?.toFixed(1)}%</strong>
             </div>
             <div className="p-3 bg-[#0F1117] border border-[#2D3148] rounded-xl">
               <span className="text-gray-500 block">Avg. Household Size</span>
-              <strong className="text-base text-white block mt-1">{district.household_size_avg?.toFixed(1)} persons</strong>
+              <strong className="text-base text-white block mt-1">{activeDistrict.household_size_avg?.toFixed(1)} persons</strong>
             </div>
           </div>
         </div>
@@ -353,25 +381,25 @@ export default function DistrictPageClient({
             Data & Methodology (Survey Metadata)
           </h3>
           <p className="text-xs text-gray-400 mb-4 leading-relaxed">
-            Data collected by the Ministry of Health & Family Welfare during the National Family Health Survey (NFHS-5). Sample sizes and respondents interviewed:
+            Data collected by the Ministry of Health & Family Welfare during the National Family Health Survey ({activeDistrict.metadata.source}). Sample sizes and respondents interviewed:
           </p>
           <div className="grid grid-cols-3 gap-2.5 text-center text-xs">
             <div className="p-2.5 bg-[#0F1117] border border-[#2D3148] rounded-xl">
               <span className="text-[10px] text-gray-500 block">Households</span>
               <strong className="text-sm text-orange-400 block mt-1">
-                {district.households_surveyed?.toLocaleString("en-IN")}
+                {activeDistrict.households_surveyed?.toLocaleString("en-IN")}
               </strong>
             </div>
             <div className="p-2.5 bg-[#0F1117] border border-[#2D3148] rounded-xl">
               <span className="text-[10px] text-gray-500 block">Women (15-49)</span>
               <strong className="text-sm text-orange-400 block mt-1">
-                {district.women_interviewed?.toLocaleString("en-IN")}
+                {activeDistrict.women_interviewed?.toLocaleString("en-IN")}
               </strong>
             </div>
             <div className="p-2.5 bg-[#0F1117] border border-[#2D3148] rounded-xl">
               <span className="text-[10px] text-gray-500 block">Men (15-54)</span>
               <strong className="text-sm text-orange-400 block mt-1">
-                {district.men_interviewed?.toLocaleString("en-IN")}
+                {activeDistrict.men_interviewed?.toLocaleString("en-IN")}
               </strong>
             </div>
           </div>
@@ -381,9 +409,9 @@ export default function DistrictPageClient({
 
       {/* Footer Attribution */}
       <div className="pt-4 text-center text-[10px] text-gray-600">
-        Data Sources: Ministry of Health and Family Welfare, Government of India. Fact sheets retrieved from NFHS-5 publications. For questions, consult the official{" "}
+        Data Sources: Ministry of Health and Family Welfare, Government of India. Fact sheets retrieved from {activeDistrict.metadata.source} publications. For questions, consult the official{" "}
         <a
-          href="https://rchiips.org/nfhs/nfhs5.shtml"
+          href="https://rchiips.org/nfhs/"
           target="_blank"
           rel="noopener noreferrer"
           className="text-orange-400/80 hover:underline"

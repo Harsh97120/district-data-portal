@@ -33,24 +33,28 @@ interface Message {
 }
 
 export default function AskYourDistrict({ district, allDistricts }: AskYourDistrictProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      sender: "bot",
-      structured: {
-        title: "District Intelligence Assistant",
-        summary: `Welcome to the grounded intelligence dashboard for ${district.district_name} district. I can compile comparative analyses, outline gaps, and query raw indicators using verified data.`,
-        bullets: [
-          `Ask about development gaps: "What are ${district.district_name}'s biggest gaps?"`,
-          `Ask about child nutrition: "Why is child nutrition a concern here?"`,
-          `Ask for peer comparison: "Compare ${district.district_name} with peer districts."`,
-          `Type any specific indicator to view comparison stats (e.g. "contraception", "electricity").`
-        ],
-        citation: "NFHS-5 (2019-21) and ML Engine Calculations",
-      },
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setMessages([
+      {
+        sender: "bot",
+        structured: {
+          title: "District Intelligence Assistant",
+          summary: `Welcome to the grounded intelligence dashboard for ${district.district_name} district. I can compile comparative analyses, outline gaps, and query raw indicators using verified data.`,
+          bullets: [
+            `Ask about development gaps: "What are ${district.district_name}'s biggest gaps?"`,
+            `Ask about child nutrition: "Why is child nutrition a concern here?"`,
+            `Ask for peer comparison: "Compare ${district.district_name} with peer districts."`,
+            `Type any specific indicator to view comparison stats (e.g. "contraception", "electricity").`
+          ],
+          citation: `${district.metadata?.source || "NFHS-5"} (${district.metadata?.year || "2019-21"}) and ML Engine Calculations`,
+        },
+      },
+    ]);
+  }, [district.district_id, district.metadata?.source]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -100,7 +104,7 @@ export default function AskYourDistrict({ district, allDistricts }: AskYourDistr
         summary: `An analysis of ${dName}'s indicators shows the following three areas require the most immediate attention, ranked by severity and negative deviation from state averages:`,
         metrics,
         insight: `Programmatic focus should be placed on ${priorities[0].label.toLowerCase()} which shows the highest severity score (${priorities[0].priorityScore.toFixed(0)}), followed by ${priorities[1].label.toLowerCase()}.`,
-        citation: `National Family Health Survey (NFHS-5) 2019-21 Factsheets. Computed dynamically via Priority Engine.`,
+        citation: `National Family Health Survey (${district.metadata?.source || "NFHS-5"}) ${district.metadata?.year || "2019-21"} Factsheets. Computed dynamically via Priority Engine.`,
       };
     }
 
@@ -147,7 +151,7 @@ export default function AskYourDistrict({ district, allDistricts }: AskYourDistr
           `Exclusive breastfeeding for infants under 6 months stands at ${(district.exclusive_breastfeeding ?? 0).toFixed(1)}%.`
         ],
         insight: "Chronic undernutrition (stunting) combined with acute wasting requires nutritional supplementation and local counseling on infant feeding.",
-        citation: "Ministry of Health & Family Welfare, NFHS-5 (2019-21) Factsheets.",
+        citation: `Ministry of Health & Family Welfare, ${district.metadata?.source || "NFHS-5"} (${district.metadata?.year || "2019-21"}) Factsheets.`,
       };
     }
 
@@ -207,10 +211,9 @@ export default function AskYourDistrict({ district, allDistricts }: AskYourDistr
           const stateVal = stateAverages[key] ?? val;
           const gap = val - stateVal;
           const better = meta.direction === "positive" ? gap > 0 : gap < 0;
-
           return {
             title: `Indicator Profile: ${meta.label}`,
-            summary: `Verified NFHS-5 (2019-21) data for ${meta.label}:`,
+            summary: `Verified ${district.metadata?.source || "NFHS-5"} (${district.metadata?.year || "2019-21"}) data for ${meta.label}:`,
             metrics: [
               {
                 label: dName,
@@ -221,7 +224,7 @@ export default function AskYourDistrict({ district, allDistricts }: AskYourDistr
               }
             ],
             insight: meta.description,
-            citation: `${district.metadata.source} Factsheet (${district.metadata.year})`,
+            citation: `${district.metadata?.source || "NFHS-5"} Factsheet (${district.metadata?.year || "2019-21"})`,
           };
         }
       }
@@ -236,7 +239,7 @@ export default function AskYourDistrict({ district, allDistricts }: AskYourDistr
         `Ask: "Why is child nutrition a concern in ${dName}?"`,
         `Ask: "Show similar peer districts of ${dName}."`
       ],
-      citation: "NFHS-5 (2019-21) Grounded Data Lookup",
+      citation: `${district.metadata?.source || "NFHS-5"} (${district.metadata?.year || "2019-21"}) Grounded Data Lookup`,
     };
   };
 
