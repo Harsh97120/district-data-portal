@@ -11,10 +11,14 @@ const IndiaMap = dynamic(() => import("@/components/map/IndiaMap"), {
   ),
 });
 
-export default function IndiaMapWrapper() {
+interface IndiaMapWrapperProps {
+  onMapReady?: (resetFn: () => void) => void;
+}
+
+export default function IndiaMapWrapper({ onMapReady }: IndiaMapWrapperProps) {
   return (
-    <div className="w-full h-full min-h-[500px]">
-      <IndiaMap />
+    <div className="w-full h-full min-h-[400px]">
+      <IndiaMap onMapReady={onMapReady} />
     </div>
   );
 }

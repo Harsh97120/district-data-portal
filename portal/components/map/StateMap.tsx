@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import type { Map as LeafletMap, GeoJSON as LeafletGeoJSON } from "leaflet";
+import type { Map as LeafletMap, GeoJSON as LeafletGeoJSON, LatLngBounds, Layer } from "leaflet";
 import type { DistrictMetrics } from "@/lib/types/district";
 import type { DistrictGeoProps } from "@/lib/types/district";
 import {
@@ -17,15 +17,19 @@ interface StateMapProps {
   stateCode: string;
   onDistrictSelect: (district: DistrictMetrics | null) => void;
   selectedDistrictId?: string | null;
+  /** Called once the map is ready; receives a resetView function for the parent to use */
+  onMapReady?: (resetFn: () => void) => void;
 }
 
-export default function StateMap({ stateCode, onDistrictSelect, selectedDistrictId }: StateMapProps) {
-  const mapRef = useRef<LeafletMap | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const geoLayerRef = useRef<LeafletGeoJSON | null>(null);
+export default function StateMap({ stateCode, onDistrictSelect, selectedDistrictId, onMapReady }: StateMapProps) {
+  const mapRef         = useRef<LeafletMap | null>(null);
+  const containerRef   = useRef<HTMLDivElement | null>(null);
+  const geoLayerRef    = useRef<LeafletGeoJSON | null>(null);
   const districtMapRef = useRef<Map<string, DistrictMetrics> | null>(null);
+  const boundsRef      = useRef<LatLngBounds | null>(null);
+
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]     = useState<string | null>(null);
 
   const updateStyles = useCallback((selectedId: string | null | undefined) => {
     const layer = geoLayerRef.current;
@@ -45,6 +49,15 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
       const isSelected = !!selectedId && data?.district_id === selectedId;
       l.setStyle(getDistrictStyle(data?.literacy_rate, isSelected));
     });
+  }, []);
+
+  /** Fly back to the full-state view */
+  const handleReset = useCallback(() => {
+    if (!mapRef.current) return;
+    mapRef.current.invalidateSize();
+    if (boundsRef.current && boundsRef.current.isValid()) {
+      mapRef.current.flyToBounds(boundsRef.current, { padding: [25, 25], duration: 0.6 });
+    }
   }, []);
 
   useEffect(() => {
@@ -70,8 +83,7 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
       mapRef.current = map;
 
       L.control.zoom({ position: "topright" }).addTo(map);
-      L.control.attribution({ position: "bottomright", prefix: false })
-        .addTo(map);
+      L.control.attribution({ position: "bottomright", prefix: false }).addTo(map);
 
       // Load both GeoJSON and metrics in parallel
       const [geojson, metrics] = await Promise.all([
@@ -87,7 +99,6 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
         return;
       }
 
-      // Build name → data lookup
       const districtMap = buildDistrictNameMap(metrics ?? []);
       districtMapRef.current = districtMap;
 
@@ -122,7 +133,6 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
             },
           });
 
-          // Tooltip
           const tooltipContent = data
             ? `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:#F0F0F0;background:#1A1D27;border:1px solid #2D3148;border-radius:8px">
                 <strong style="font-size:13px;color:#fff">${name}</strong><br/>
@@ -143,26 +153,41 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
 
       const bounds = layer.getBounds();
       if (bounds.isValid()) {
+        boundsRef.current = bounds;
         map.invalidateSize();
-        map.fitBounds(bounds, { padding: [30, 30] });
+        map.fitBounds(bounds, { padding: [25, 25] });
       }
 
       setLoading(false);
 
-      // Extra invalidateSize after DOM update
+      // Notify parent that the map is ready and hand over the reset function
+      onMapReady?.(handleReset);
+
       setTimeout(() => {
-        if (mapRef.current) {
+        if (mapRef.current && boundsRef.current) {
           mapRef.current.invalidateSize();
-          if (bounds.isValid()) {
-            mapRef.current.fitBounds(bounds, { padding: [30, 30] });
-          }
+          mapRef.current.fitBounds(boundsRef.current, { padding: [25, 25] });
         }
-      }, 200);
+      }, 250);
     }
 
     init();
 
+    // ResizeObserver to dynamically resize Leaflet whenever parent layout shrinks/grows (e.g. side panel toggle)
+    let resizeObserver: ResizeObserver | null = null;
+    if (containerRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        if (mapRef.current) {
+          mapRef.current.invalidateSize({ pan: false });
+        }
+      });
+      resizeObserver.observe(containerRef.current);
+    }
+
     return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
@@ -171,13 +196,20 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
     };
   }, [stateCode, onDistrictSelect]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Re-style when selection changes
+  // Re-style and adapt bounds when selection changes
   useEffect(() => {
     updateStyles(selectedDistrictId);
+    if (mapRef.current) {
+      setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.invalidateSize({ pan: false });
+        }
+      }, 150);
+    }
   }, [selectedDistrictId, updateStyles]);
 
   return (
-    <div className="relative w-full h-full min-h-[500px]">
+    <div className="relative w-full h-full min-h-[450px]">
       {loading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#0F1117]">
           <LoadingSpinner label="Loading district map…" />
@@ -190,7 +222,7 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
           <p className="text-gray-400 text-sm whitespace-pre-line max-w-sm">{error}</p>
         </div>
       )}
-      <div ref={containerRef} className="w-full h-full min-h-[500px]" />
+      <div ref={containerRef} className="w-full h-full min-h-[450px]" />
     </div>
   );
 }

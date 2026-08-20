@@ -15,6 +15,7 @@ interface StateMapWrapperProps {
   stateCode: string;
   onDistrictSelect: (district: import("@/lib/types/district").DistrictMetrics | null) => void;
   selectedDistrictId?: string | null;
+  onMapReady?: (resetFn: () => void) => void;
 }
 
 export default function StateMapWrapper(props: StateMapWrapperProps) {

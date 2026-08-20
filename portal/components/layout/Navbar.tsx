@@ -75,9 +75,15 @@ export default function Navbar() {
 
             {/* Desktop Nav Links & Single Auth Option */}
             <div className="hidden md:flex items-center gap-6">
-              <nav className="flex items-center gap-6 text-sm text-gray-400">
-                <Link href="/" className="hover:text-white transition-colors">
+              <nav className="flex items-center gap-5 text-sm text-gray-400">
+                <Link href="/" className={`hover:text-white transition-colors ${pathname === "/" ? "text-white font-semibold" : ""}`}>
                   Home
+                </Link>
+                <Link href="/map" className={`hover:text-white transition-colors ${pathname === "/map" ? "text-white font-semibold" : ""}`}>
+                  Map Explorer
+                </Link>
+                <Link href="/search" className={`hover:text-white transition-colors ${pathname === "/search" ? "text-white font-semibold" : ""}`}>
+                  Search & Filter
                 </Link>
                 {activeStateName && activeStateCode && (
                   <Link href={`/state/${activeStateCode}`} className="text-white border-b border-orange-500 pb-0.5 transition-colors">
@@ -126,6 +132,14 @@ export default function Navbar() {
               <Link href="/" onClick={() => setMenuOpen(false)}
                 className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
                 Home
+              </Link>
+              <Link href="/map" onClick={() => setMenuOpen(false)}
+                className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                Map Explorer
+              </Link>
+              <Link href="/search" onClick={() => setMenuOpen(false)}
+                className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                Search & Filter
               </Link>
               {activeStateName && activeStateCode && (
                 <Link href={`/state/${activeStateCode}`} onClick={() => setMenuOpen(false)}

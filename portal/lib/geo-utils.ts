@@ -98,6 +98,7 @@ export function getStateStyle(
   };
 }
 
+
 /**
  * Normalise a string for fuzzy matching between GeoJSON names and data names.
  * e.g. "Chhota Udaipur" → "chhota udaipur"

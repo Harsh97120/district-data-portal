@@ -77,10 +77,17 @@
       },
       "metadata": {
         "type": "object",
-        "required": ["source", "year"],
+        "required": [
+          "source",
+          "year"
+        ],
         "properties": {
-          "source": { "type": "string" },
-          "year": { "type": "string" }
+          "source": {
+            "type": "string"
+          },
+          "year": {
+            "type": "string"
+          }
         }
       }
     },
