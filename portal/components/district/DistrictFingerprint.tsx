@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import type { DistrictMetrics } from "@/lib/types/district";
 import { getDimensionScores } from "@/lib/ml-utils";
+import { useTheme } from "@/lib/ThemeContext";
 
 interface DistrictFingerprintProps {
   district: DistrictMetrics;
@@ -26,6 +27,7 @@ const CATEGORY_NAMES: Record<string, string> = {
 };
 
 export default function DistrictFingerprint({ district }: DistrictFingerprintProps) {
+  const { theme } = useTheme();
   const [showMethodology, setShowMethodology] = useState(false);
   const scores = getDimensionScores(district);
 
@@ -75,15 +77,15 @@ export default function DistrictFingerprint({ district }: DistrictFingerprintPro
         <div className="w-full max-w-[280px] h-[260px] flex items-center justify-center">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
-              <PolarGrid stroke="#2D3148" />
+              <PolarGrid stroke={theme === "dark" ? "#2D3148" : "#E5E7EB"} />
               <PolarAngleAxis
                 dataKey="subject"
-                tick={{ fill: "#9CA3AF", fontSize: 11, fontWeight: 500 }}
+                tick={{ fill: theme === "dark" ? "#9CA3AF" : "#5B6472", fontSize: 11, fontWeight: 500 }}
               />
               <PolarRadiusAxis
                 angle={30}
                 domain={[0, 100]}
-                tick={{ fill: "#4B5563", fontSize: 9 }}
+                tick={{ fill: theme === "dark" ? "#4B5563" : "#8B95A5", fontSize: 9 }}
                 axisLine={false}
               />
               <Radar

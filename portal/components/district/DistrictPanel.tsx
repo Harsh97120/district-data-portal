@@ -30,7 +30,7 @@ export default function DistrictPanel({ district, onClose }: DistrictPanelProps)
     <>
       {/* Mobile Backdrop (only on screens < lg) */}
       <div
-        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden animate-fade-in"
+        className="fixed inset-0 z-[1001] bg-black/60 backdrop-blur-sm lg:hidden animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -39,7 +39,7 @@ export default function DistrictPanel({ district, onClose }: DistrictPanelProps)
       <div
         ref={panelRef}
         className="
-          fixed inset-y-0 right-0 z-50 w-full sm:w-[420px]
+          fixed inset-y-0 right-0 z-[1002] w-full sm:w-[420px]
           lg:static lg:z-10 lg:w-[440px] xl:w-[480px] lg:h-full lg:min-h-0
           bg-[#1A1D27] border-l border-[#2D3148]
           flex flex-col shadow-2xl lg:shadow-none

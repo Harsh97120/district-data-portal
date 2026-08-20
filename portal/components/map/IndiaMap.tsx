@@ -6,6 +6,7 @@ import type { StateGeoProps } from "@/lib/types/district";
 import { STATE_BY_GEONAME, CHOROPLETH_STEPS } from "@/lib/constants";
 import { fetchGeoJSON, getStateName } from "@/lib/geo-utils";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { useTheme } from "@/lib/ThemeContext";
 
 // India map center and zoom
 const INDIA_CENTER: [number, number] = [22.5, 82.5];
@@ -26,12 +27,12 @@ function getStateChoroplethColor(stateName: string): string {
   return CHOROPLETH_COLORS[nameHash(stateName.toLowerCase(), CHOROPLETH_COLORS.length)];
 }
 
-function buildStateStyle(stateName: string, hovered: boolean): Record<string, unknown> {
+function buildStateStyle(stateName: string, hovered: boolean, theme: string = "dark"): Record<string, unknown> {
   const fillColor = getStateChoroplethColor(stateName);
   return {
     fillColor,
     fillOpacity: hovered ? 0.95 : 0.65,
-    color: hovered ? "#FFFFFF" : "rgba(255,255,255,0.3)",
+    color: hovered ? (theme === "dark" ? "#FFFFFF" : "#111827") : (theme === "dark" ? "rgba(255,255,255,0.3)" : "rgba(17,24,39,0.15)"),
     weight: hovered ? 2 : 0.8,
     opacity: 1,
   };
@@ -48,6 +49,7 @@ export default function IndiaMap({ onMapReady }: IndiaMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const boundsRef    = useRef<LatLngBounds | null>(null);
 
+  const { theme } = useTheme();
   const [loading, setLoading]           = useState(true);
   const [hoveredState, setHoveredState] = useState<string | null>(null);
   const [error, setError]               = useState<string | null>(null);
@@ -104,7 +106,7 @@ export default function IndiaMap({ onMapReady }: IndiaMapProps) {
         style: (feature) => {
           if (!feature) return {};
           const name = getStateName(feature.properties as StateGeoProps);
-          return buildStateStyle(name, false) as Parameters<typeof L.geoJSON>[1] extends { style: infer S }
+          return buildStateStyle(name, false, theme) as Parameters<typeof L.geoJSON>[1] extends { style: infer S }
             ? Parameters<S extends (...args: unknown[]) => unknown ? S : never>[0]
             : never;
         },
@@ -116,7 +118,7 @@ export default function IndiaMap({ onMapReady }: IndiaMapProps) {
             mouseover: (e) => {
               setHoveredState(name);
               const l = e.target;
-              l.setStyle(buildStateStyle(name, true));
+              l.setStyle(buildStateStyle(name, true, theme));
               l.bringToFront();
             },
             mouseout: (e) => {
@@ -128,8 +130,12 @@ export default function IndiaMap({ onMapReady }: IndiaMapProps) {
             },
           });
 
+          const textColor = theme === "dark" ? "#F0F0F0" : "#111827";
+          const tooltipBg = theme === "dark" ? "#1A1D27" : "#FFFFFF";
+          const tooltipBorder = theme === "dark" ? "#2D3148" : "#E5E7EB";
+
           featureLayer.bindTooltip(
-            `<div style="font-family:Inter,sans-serif;padding:4px 8px;font-size:13px;font-weight:600;color:#F0F0F0;background:#1A1D27;border:1px solid #2D3148;border-radius:6px">
+            `<div style="font-family:Inter,sans-serif;padding:4px 8px;font-size:13px;font-weight:600;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:6px">
               ${name}${stateInfo?.hasData ? '<span style="color:#FF6B35;margin-left:6px;font-size:10px">● Data</span>' : ""}
             </div>`,
             { sticky: true, opacity: 1, className: "leaflet-tooltip-custom" }
@@ -182,6 +188,29 @@ export default function IndiaMap({ onMapReady }: IndiaMapProps) {
       }
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const layer = geoLayerRef.current;
+    if (!layer) return;
+    layer.eachLayer((featureLayer: any) => {
+      const feature = featureLayer.feature;
+      if (!feature) return;
+      const name = getStateName(feature.properties as StateGeoProps);
+      featureLayer.setStyle(buildStateStyle(name, false, theme));
+
+      // Update tooltips dynamically
+      const stateInfo = STATE_BY_GEONAME[name.toLowerCase()];
+      const textColor = theme === "dark" ? "#F0F0F0" : "#111827";
+      const tooltipBg = theme === "dark" ? "#1A1D27" : "#FFFFFF";
+      const tooltipBorder = theme === "dark" ? "#2D3148" : "#E5E7EB";
+
+      featureLayer.setTooltipContent(
+        `<div style="font-family:Inter,sans-serif;padding:4px 8px;font-size:13px;font-weight:600;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:6px">
+          ${name}${stateInfo?.hasData ? '<span style="color:#FF6B35;margin-left:6px;font-size:10px">● Data</span>' : ""}
+        </div>`
+      );
+    });
+  }, [theme]);
 
   return (
     <div className="relative w-full h-full min-h-[450px]">

@@ -132,14 +132,13 @@ export default function StatePageClient({ stateCode }: StatePageClientProps) {
             <RefreshIcon spinning={spinning} />
             Reset view
           </button>
-
           {/* Legend overlay */}
           <div className="absolute bottom-4 left-4 z-20">
             <MapLegend />
           </div>
         </div>
 
-        {/* District detail panel (dynamic inline right panel on desktop) */}
+        {/* District detail panel */}
         <DistrictPanel
           district={selectedDistrict}
           onClose={() => setSelectedDistrict(null)}

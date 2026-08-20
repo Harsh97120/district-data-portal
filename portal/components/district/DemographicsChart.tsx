@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import type { DistrictMetrics } from "@/lib/types/district";
 import { PRIMARY_METRICS, METRIC_LABELS } from "@/lib/constants";
+import { useTheme } from "@/lib/ThemeContext";
 
 interface DemographicsChartProps {
   district: DistrictMetrics;
@@ -31,6 +32,7 @@ const SHORT_LABELS: Record<string, string> = {
 const BAR_COLORS = ["#FF6B35", "#FFA726", "#FFD700", "#66BB6A", "#42A5F5"];
 
 export default function DemographicsChart({ district }: DemographicsChartProps) {
+  const { theme } = useTheme();
   const data = PRIMARY_METRICS.map((field, i) => {
     const raw = district[field as keyof DistrictMetrics];
     const value = typeof raw === "number" ? raw : null;
@@ -61,28 +63,28 @@ export default function DemographicsChart({ district }: DemographicsChartProps) 
           margin={{ top: 4, right: 8, left: 0, bottom: 60 }}
           barCategoryGap="25%"
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#2D3148" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "#2D3148" : "#E5E7EB"} vertical={false} />
           <XAxis
             dataKey="name"
-            tick={{ fill: "#9CA3AF", fontSize: 10 }}
+            tick={{ fill: theme === "dark" ? "#9CA3AF" : "#5B6472", fontSize: 10 }}
             tickLine={false}
-            axisLine={{ stroke: "#2D3148" }}
+            axisLine={{ stroke: theme === "dark" ? "#2D3148" : "#E5E7EB" }}
             angle={-40}
             textAnchor="end"
             interval={0}
           />
           <YAxis
-            tick={{ fill: "#9CA3AF", fontSize: 10 }}
+            tick={{ fill: theme === "dark" ? "#9CA3AF" : "#5B6472", fontSize: 10 }}
             tickLine={false}
             axisLine={false}
             width={40}
           />
           <Tooltip
             contentStyle={{
-              background: "#1A1D27",
-              border: "1px solid #2D3148",
+              background: theme === "dark" ? "#1A1D27" : "#FFFFFF",
+              border: theme === "dark" ? "1px solid #2D3148" : "1px solid #E5E7EB",
               borderRadius: "8px",
-              color: "#F0F0F0",
+              color: theme === "dark" ? "#F0F0F0" : "#111827",
               fontSize: "12px",
             }}
             labelStyle={{ color: "#FF6B35", fontWeight: 600 }}

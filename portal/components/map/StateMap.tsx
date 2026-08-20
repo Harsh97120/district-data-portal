@@ -12,6 +12,7 @@ import {
 } from "@/lib/geo-utils";
 import { fetchDistrictMetrics, buildDistrictNameMap } from "@/lib/data-loader";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { useTheme } from "@/lib/ThemeContext";
 
 interface StateMapProps {
   stateCode: string;
@@ -28,6 +29,7 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
   const districtMapRef = useRef<Map<string, DistrictMetrics> | null>(null);
   const boundsRef      = useRef<LatLngBounds | null>(null);
 
+  const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
 
@@ -47,9 +49,9 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
       const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
       const data = districtMap.get(normalise(name)) ?? districtMap.get(slug(name));
       const isSelected = !!selectedId && data?.district_id === selectedId;
-      l.setStyle(getDistrictStyle(data?.literacy_rate, isSelected));
+      l.setStyle(getDistrictStyle(data?.literacy_rate, isSelected, theme));
     });
-  }, []);
+  }, [theme]);
 
   /** Fly back to the full-state view */
   const handleReset = useCallback(() => {
@@ -108,7 +110,7 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
           const name = getDistrictName(feature.properties as DistrictGeoProps);
           const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
           const data = districtMap.get(normalise(name)) ?? districtMap.get(slug(name));
-          return getDistrictStyle(data?.literacy_rate, false);
+          return getDistrictStyle(data?.literacy_rate, false, theme);
         },
         onEachFeature: (feature, featureLayer) => {
           const name = getDistrictName(feature.properties as DistrictGeoProps);
@@ -121,7 +123,7 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
               const l = e.target as any;
               const isSelected = data?.district_id === selectedDistrictId;
               if (!isSelected) {
-                l.setStyle({ fillOpacity: 0.9, weight: 1.5, color: "#FFFFFF" });
+                l.setStyle({ fillOpacity: 0.9, weight: 1.5, color: theme === "dark" ? "#FFFFFF" : "#111827" });
               }
               l.bringToFront();
             },
@@ -133,13 +135,19 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
             },
           });
 
+          const textColor = theme === "dark" ? "#F0F0F0" : "#111827";
+          const textMuted = theme === "dark" ? "#9CA3AF" : "#5B6472";
+          const titleColor = theme === "dark" ? "#FFFFFF" : "#111827";
+          const tooltipBg = theme === "dark" ? "#1A1D27" : "#FFFFFF";
+          const tooltipBorder = theme === "dark" ? "#2D3148" : "#E5E7EB";
+
           const tooltipContent = data
-            ? `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:#F0F0F0;background:#1A1D27;border:1px solid #2D3148;border-radius:8px">
-                <strong style="font-size:13px;color:#fff">${name}</strong><br/>
-                <span style="color:#9CA3AF">Literacy: </span>
+            ? `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px">
+                <strong style="font-size:13px;color:${titleColor}">${name}</strong><br/>
+                <span style="color:${textMuted}">Literacy: </span>
                 <span style="color:#FF6B35;font-weight:600">${data.literacy_rate?.toFixed(1) ?? "—"}%</span>
               </div>`
-            : `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:#9CA3AF;background:#1A1D27;border:1px solid #2D3148;border-radius:8px">${name}</div>`;
+            : `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textMuted};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px">${name}</div>`;
 
           featureLayer.bindTooltip(tooltipContent, {
             sticky: true,
@@ -196,7 +204,7 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
     };
   }, [stateCode, onDistrictSelect]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Re-style and adapt bounds when selection changes
+  // Re-style, update tooltips and adapt bounds when selection or theme changes
   useEffect(() => {
     updateStyles(selectedDistrictId);
     if (mapRef.current) {
@@ -206,7 +214,35 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
         }
       }, 150);
     }
-  }, [selectedDistrictId, updateStyles]);
+
+    const layer = geoLayerRef.current;
+    const districtMap = districtMapRef.current;
+    if (!layer || !districtMap) return;
+
+    layer.eachLayer((featureLayer: any) => {
+      const props = featureLayer.feature?.properties as DistrictGeoProps | undefined;
+      if (!props) return;
+      const name = getDistrictName(props);
+      const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const data = districtMap.get(normalise(name)) ?? districtMap.get(slug(name));
+
+      const textColor = theme === "dark" ? "#F0F0F0" : "#111827";
+      const textMuted = theme === "dark" ? "#9CA3AF" : "#5B6472";
+      const titleColor = theme === "dark" ? "#FFFFFF" : "#111827";
+      const tooltipBg = theme === "dark" ? "#1A1D27" : "#FFFFFF";
+      const tooltipBorder = theme === "dark" ? "#2D3148" : "#E5E7EB";
+
+      const tooltipContent = data
+        ? `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px">
+            <strong style="font-size:13px;color:${titleColor}">${name}</strong><br/>
+            <span style="color:${textMuted}">Literacy: </span>
+            <span style="color:#FF6B35;font-weight:600">${data.literacy_rate?.toFixed(1) ?? "—"}%</span>
+          </div>`
+        : `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textMuted};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px">${name}</div>`;
+
+      featureLayer.setTooltipContent(tooltipContent);
+    });
+  }, [theme, selectedDistrictId, updateStyles]);
 
   return (
     <div className="relative w-full h-full min-h-[450px]">

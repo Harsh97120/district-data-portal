@@ -48,8 +48,11 @@ export function getStateName(props: StateGeoProps): string {
  * Get the choropleth fill colour for a given numeric value (e.g. literacy rate).
  * Returns the no-data colour if value is null/undefined.
  */
-export function getChoroplethColor(value: number | null | undefined): string {
-  if (value === null || value === undefined) return COLORS.noData;
+export function getChoroplethColor(
+  value: number | null | undefined,
+  theme: string = "dark"
+): string {
+  if (value === null || value === undefined) return theme === "dark" ? COLORS.noData : "#E5E7EB";
   for (const step of CHOROPLETH_STEPS) {
     if (value <= step.threshold) return step.color;
   }
@@ -61,13 +64,14 @@ export function getChoroplethColor(value: number | null | undefined): string {
  */
 export function getDistrictStyle(
   value: number | null | undefined,
-  isSelected: boolean
+  isSelected: boolean,
+  theme: string = "dark"
 ): Record<string, unknown> {
-  const fillColor = getChoroplethColor(value);
+  const fillColor = getChoroplethColor(value, theme);
   return {
     fillColor,
     fillOpacity: isSelected ? 0.9 : 0.7,
-    color: isSelected ? COLORS.primary : "#FFFFFF",
+    color: isSelected ? COLORS.primary : (theme === "dark" ? "#FFFFFF" : "#E5E7EB"),
     weight: isSelected ? 2.5 : 0.8,
     opacity: 1,
   };
@@ -78,21 +82,22 @@ export function getDistrictStyle(
  */
 export function getStateStyle(
   hasData: boolean,
-  isHovered: boolean
+  isHovered: boolean,
+  theme: string = "dark"
 ): Record<string, unknown> {
   if (isHovered) {
     return {
-      fillColor: hasData ? COLORS.primary : "#4B5563",
+      fillColor: hasData ? COLORS.primary : (theme === "dark" ? "#4B5563" : "#D1D5DB"),
       fillOpacity: 0.7,
-      color: "#FFFFFF",
+      color: theme === "dark" ? "#FFFFFF" : "#111827",
       weight: 2,
       opacity: 1,
     };
   }
   return {
-    fillColor: hasData ? "#F97316" : "#1E293B",
+    fillColor: hasData ? "#F97316" : (theme === "dark" ? "#1E293B" : "#F3F4F6"),
     fillOpacity: hasData ? 0.45 : 0.6,
-    color: hasData ? "#FB923C" : "#334155",
+    color: hasData ? "#FB923C" : (theme === "dark" ? "#334155" : "#E5E7EB"),
     weight: hasData ? 1.5 : 0.8,
     opacity: 1,
   };

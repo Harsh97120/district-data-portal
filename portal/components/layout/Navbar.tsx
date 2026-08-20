@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { STATE_BY_CODE } from "@/lib/constants";
+import { useTheme } from "@/lib/ThemeContext";
 
 type AuthMode = "login" | "register" | null;
 
@@ -14,10 +15,20 @@ export default function Navbar() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
   const [activeStateCode, setActiveStateCode] = useState("");
   const [activeStateName, setActiveStateName] = useState("");
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -56,55 +67,63 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#0F1117]/90 backdrop-blur-md border-b border-[#2D3148]">
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[#0F1117]/85 backdrop-blur-md border-b border-[#2D3148] shadow-sm shadow-black/5' : 'bg-transparent border-b border-transparent'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo / Title */}
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="flex flex-col w-6 h-4 overflow-hidden rounded-sm shadow-sm">
+              <div className="flex flex-col w-5.5 h-3.5 overflow-hidden rounded-sm shadow-sm">
                 <div className="flex-1 bg-[#FF9933]" />
                 <div className="flex-1 bg-white flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 rounded-full border border-[#000080]" />
+                  <div className="w-1 h-1 rounded-full border border-[#000080]" />
                 </div>
                 <div className="flex-1 bg-[#138808]" />
               </div>
-              <span className="font-bold text-lg text-white group-hover:text-orange-400 transition-colors">
+              <span className="font-extrabold text-base text-white tracking-tight group-hover:text-orange-400 transition-colors">
                 India District Portal
               </span>
             </Link>
 
             {/* Desktop Nav Links & Single Auth Option */}
             <div className="hidden md:flex items-center gap-6">
-              <nav className="flex items-center gap-5 text-sm text-gray-400">
-                <Link href="/" className={`hover:text-white transition-colors ${pathname === "/" ? "text-white font-semibold" : ""}`}>
+              <nav className="flex items-center gap-2">
+                <Link href="/" className={`px-3 py-1.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${pathname === "/" ? "bg-orange-500/10 text-orange-400 border border-orange-500/20" : "text-gray-400 hover:text-white border border-transparent"}`}>
                   Home
                 </Link>
-                <Link href="/map" className={`hover:text-white transition-colors ${pathname === "/map" ? "text-white font-semibold" : ""}`}>
+                <Link href="/map" className={`px-3 py-1.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${pathname === "/map" ? "bg-orange-500/10 text-orange-400 border border-orange-500/20" : "text-gray-400 hover:text-white border border-transparent"}`}>
                   Map Explorer
                 </Link>
-                <Link href="/search" className={`hover:text-white transition-colors ${pathname === "/search" ? "text-white font-semibold" : ""}`}>
+                <Link href="/search" className={`px-3 py-1.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${pathname === "/search" ? "bg-orange-500/10 text-orange-400 border border-orange-500/20" : "text-gray-400 hover:text-white border border-transparent"}`}>
                   Search & Filter
                 </Link>
                 {activeStateName && activeStateCode && (
-                  <Link href={`/state/${activeStateCode}`} className="text-white border-b border-orange-500 pb-0.5 transition-colors">
-                    {activeStateName}
+                  <Link href={`/state/${activeStateCode}`} className="px-3 py-1.5 rounded-xl text-xs font-bold tracking-wide bg-orange-500/5 text-orange-400 border border-orange-500/15 hover:bg-orange-500/10 transition-all duration-200">
+                    State: {activeStateName}
                   </Link>
                 )}
-                <span className="px-3 py-1 bg-orange-500/10 text-orange-400 border border-orange-500/30 rounded-full text-xs font-medium mr-2">
+                <span className="px-3 py-1 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full text-[10px] font-bold tracking-wide ml-2 uppercase">
                   NFHS-5 Data
                 </span>
               </nav>
 
               <div className="w-px h-5 bg-[#2D3148]" />
 
-              <div className="flex items-center">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={toggleTheme}
+                  title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                  className="p-1.5 rounded-xl border border-[#2D3148] hover:border-orange-500/50 bg-[#1A1D27]/50 text-gray-400 hover:text-white transition-all active:scale-95 cursor-pointer flex items-center justify-center"
+                >
+                  {theme === "dark" ? (
+                    <span className="text-[13px] leading-none select-none">☀️</span>
+                  ) : (
+                    <span className="text-[13px] leading-none select-none">🌙</span>
+                  )}
+                </button>
                 <button
                   onClick={() => setAuthMode("login")}
-                  className="px-4 py-1.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/30 hover:bg-orange-500/20 hover:border-orange-500/50 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm shadow-orange-500/5 cursor-pointer"
+                  className="px-4 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white font-bold text-xs transition-all shadow-sm shadow-orange-500/10 active:scale-[0.98] cursor-pointer"
                 >
-                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h3a3 3 0 013 3v1" />
-                  </svg>
                   Sign In
                 </button>
               </div>
@@ -148,10 +167,20 @@ export default function Navbar() {
                 </Link>
               )}
               <div className="h-px bg-[#2D3148] my-2 mx-4" />
-              <div className="px-4">
+              <div className="px-4 flex items-center gap-3">
+                <button
+                  onClick={() => { toggleTheme(); }}
+                  className="flex-1 py-2 text-center text-xs font-semibold rounded-xl bg-[#1A1D27] border border-[#2D3148] text-white hover:bg-[#242838] flex items-center justify-center gap-1.5"
+                >
+                  {theme === "dark" ? (
+                    <><span>☀️</span> Light Mode</>
+                  ) : (
+                    <><span>🌙</span> Dark Mode</>
+                  )}
+                </button>
                 <button
                   onClick={() => { setAuthMode("login"); setMenuOpen(false); }}
-                  className="w-full text-center py-2 text-xs font-semibold rounded-xl bg-[#1A1D27] border border-[#2D3148] text-white hover:bg-[#242838]"
+                  className="flex-1 text-center py-2 text-xs font-semibold rounded-xl bg-[#1A1D27] border border-[#2D3148] text-white hover:bg-[#242838]"
                 >
                   Sign In
                 </button>
