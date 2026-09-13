@@ -101,3 +101,29 @@ export async function loadAllStateCodesWithData(): Promise<string[]> {
   const { STATES } = await import("@/lib/constants");
   return STATES.filter((s) => s.hasData).map((s) => s.code);
 }
+
+export interface DistrictIndexEntry {
+  id: string;
+  name: string;
+  state_code: string;
+  state_name: string;
+}
+
+let districtsIndexCache: DistrictIndexEntry[] | null = null;
+
+/**
+ * Fetch global index of all 739 districts across India from /data/districts-index.json.
+ */
+export async function fetchDistrictsIndex(): Promise<DistrictIndexEntry[]> {
+  if (districtsIndexCache && districtsIndexCache.length > 0) return districtsIndexCache;
+  try {
+    const res = await fetch("/data/districts-index.json");
+    if (!res.ok) return [];
+    const data: DistrictIndexEntry[] = await res.json();
+    districtsIndexCache = data;
+    return data;
+  } catch {
+    return [];
+  }
+}
+

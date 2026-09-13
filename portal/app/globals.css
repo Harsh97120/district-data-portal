@@ -233,6 +233,53 @@ body {
   animation: glowBreathe 7s ease-in-out infinite;
 }
 
+/* Floating AI Chatbot Animations */
+@keyframes aiButtonGlow {
+  0%, 100% {
+    box-shadow: 0 0 16px rgba(255, 107, 53, 0.25), 0 4px 20px rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 107, 53, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 26px rgba(255, 107, 53, 0.45), 0 0 10px rgba(255, 215, 0, 0.2), 0 6px 24px rgba(0, 0, 0, 0.6);
+    border-color: rgba(255, 107, 53, 0.6);
+  }
+}
+
+.animate-ai-button-glow {
+  animation: aiButtonGlow 3.5s ease-in-out infinite;
+}
+
+@keyframes activeMinimizedGlow {
+  0%, 100% {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.75), 0 0 6px rgba(255, 107, 53, 0.2);
+    border-color: rgba(255, 107, 53, 0.75);
+  }
+  50% {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.85), 0 0 10px rgba(255, 107, 53, 0.32);
+    border-color: rgba(255, 107, 53, 0.95);
+  }
+}
+
+.animate-pulse-glow {
+  animation: activeMinimizedGlow 3.2s ease-in-out infinite;
+}
+
+@keyframes chatbotPanelOpen {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-chatbot-panel-open {
+  animation: chatbotPanelOpen 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+
 /* ── Utility: map fill containers ────────────────────────────── */
 .map-fill {
   position: absolute;
@@ -355,6 +402,8 @@ body {
   .group:hover .animate-icon-bar-3,
   .group:hover .animate-doc-scan,
   .animate-premium-fade-up,
+  .animate-ai-button-glow,
+  .animate-chatbot-panel-open,
   .animate-scroll-mouse {
     animation: none !important;
     opacity: 1 !important;

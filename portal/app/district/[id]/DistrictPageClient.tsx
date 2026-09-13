@@ -33,6 +33,7 @@ export default function DistrictPageClient({
 }: DistrictPageClientProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [surveyYear, setSurveyYear] = useState<"NFHS-5" | "NFHS-6">("NFHS-6"); // Default to latest NFHS-6
+  const [isAIOpen, setIsAIOpen] = useState(false);
 
   // Project baseline data dynamically based on the active survey year
   const activeDistrict = getMetricsForYear(district, surveyYear);
@@ -335,10 +336,48 @@ export default function DistrictPageClient({
         </div>
       </div>
 
-      {/* Ask Your District (AI chat component) */}
-      <div>
-        <AskYourDistrict district={activeDistrict} allDistricts={activeAllDistricts} />
+      {/* District Intelligence AI Assistant Prompt Banner */}
+      <div className="p-5 rounded-2xl bg-gradient-to-r from-orange-500/10 via-[#1A1D27] to-purple-950/20 border border-orange-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center flex-shrink-0">
+            <span className="text-orange-400 text-lg font-black">✦</span>
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-white tracking-wide">
+                District Intelligence AI Assistant
+              </h3>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9px] font-semibold text-emerald-400">
+                Data-grounded
+              </span>
+            </div>
+            <p className="text-xs text-gray-400 mt-0.5 leading-normal">
+              Compare {activeDistrict.district_name} with peer districts across India, benchmark against state averages, or ask detailed indicator questions.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setIsAIOpen(true)}
+          className="px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-orange-500/20 flex-shrink-0"
+        >
+          <span>✦ Ask AI Assistant</span>
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </button>
       </div>
+
+      {/* Floating District Intelligence AI Chatbot (Fixed at bottom-right) */}
+      <AskYourDistrict
+        district={activeDistrict}
+        allDistricts={activeAllDistricts}
+        stateName={stateName}
+        stateCode={stateCode}
+        surveyYear={surveyYear}
+        isOpen={isAIOpen}
+        onOpenChange={setIsAIOpen}
+      />
 
       {/* Data Explorer Component */}
       <div>
