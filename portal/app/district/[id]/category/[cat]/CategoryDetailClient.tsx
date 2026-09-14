@@ -129,7 +129,7 @@ export default function CategoryDetailClient({
 
   // ── Selected indicator state for single-indicator overview ───────────────────
   const [selectedField, setSelectedField] = useState<string>(catInfo.indicators[0] || "");
-  const activeField = catInfo.indicators.includes(selectedField)
+  const activeField = (catInfo.indicators as readonly string[]).includes(selectedField)
     ? selectedField
     : catInfo.indicators[0];
 
