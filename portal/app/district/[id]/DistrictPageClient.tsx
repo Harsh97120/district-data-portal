@@ -7,8 +7,6 @@ import { INDICATOR_CATEGORIES, METRIC_LABELS } from "@/lib/constants";
 import {
   getDimensionScores,
   getPriorityAreas,
-  runKMeansClustering,
-  checkDevelopmentParadoxes,
   getMetricsForYear,
 } from "@/lib/ml-utils";
 
@@ -48,36 +46,6 @@ export default function DistrictPageClient({
   // Core calculations using active year data
   const dimScores = getDimensionScores(activeDistrict);
   const priorities = getPriorityAreas(activeDistrict, activeAllDistricts);
-  const paradoxes = checkDevelopmentParadoxes(activeDistrict);
-  
-  // Find clustering profile
-  const clusters = runKMeansClustering(activeAllDistricts, 4);
-  const myCluster = clusters.find((c) =>
-    c.districts.some((d) => d.district_id === activeDistrict.district_id)
-  );
-  const clusterLabel = myCluster ? myCluster.label : "Moderate Development Profile";
-
-  // Dynamic Grounded AI Summary
-  const topStrengthCat = Object.entries(dimScores).sort((a, b) => b[1] - a[1])[0];
-  const topGapCat = Object.entries(dimScores).sort((a, b) => a[1] - b[1])[0];
-  
-  const generateAISummary = () => {
-    const strengthName = INDICATOR_CATEGORIES[topStrengthCat[0] as keyof typeof INDICATOR_CATEGORIES]?.label;
-    const gapName = INDICATOR_CATEGORIES[topGapCat[0] as keyof typeof INDICATOR_CATEGORIES]?.label;
-    
-    let paradoxText = "";
-    if (paradoxes.length > 0) {
-      paradoxText = ` Analysis highlights an ${paradoxes[0].title}: basic infrastructure is strong, but child nutrition remains a bottleneck.`;
-    }
-
-    return `${activeDistrict.district_name} is classified under the "${clusterLabel}" development profile in ${stateName}. Its strongest dimension is "${strengthName}" (Score: ${topStrengthCat[1]}/100), while the most significant developmental lag is in "${gapName}" (Score: ${topGapCat[1]}/100).${paradoxText} Key areas needing immediate programmatic focus include ${priorities[0].label.toLowerCase()} and ${priorities[1].label.toLowerCase()}.`;
-  };
-
-  const formatRawValue = (field: string, val: number | null) => {
-    if (val === null) return "—";
-    const meta = METRIC_LABELS[field];
-    return `${val.toFixed(1)}${meta?.unit || "%"}`;
-  };
 
   return (
     <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in text-gray-200">
@@ -131,26 +99,6 @@ export default function DistrictPageClient({
             </svg>
             Back to {stateName} Map
           </Link>
-        </div>
-      </div>
-
-      {/* AI Summary Block */}
-      <div className="p-5 rounded-2xl bg-purple-950/20 border border-purple-500/35 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-3">
-          <span className="text-[9px] uppercase tracking-widest font-extrabold bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">
-            AI Summary
-          </span>
-        </div>
-        <div className="flex items-start gap-3">
-          <svg className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-          </svg>
-          <div className="space-y-1">
-            <p className="text-xs text-purple-300 font-bold uppercase tracking-wider">AI Insights & Overview</p>
-            <p className="text-sm text-purple-100 leading-relaxed font-medium">
-              {generateAISummary()}
-            </p>
-          </div>
         </div>
       </div>
 
