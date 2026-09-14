@@ -7,6 +7,14 @@ import { STATES } from "@/lib/constants";
 import { fetchDistrictMetrics } from "@/lib/data-loader";
 import type { DistrictMetrics } from "@/lib/types/district";
 import Breadcrumb from "@/components/ui/Breadcrumb";
+import { fuzzyFilter, scoreMatch } from "@/lib/fuzzy-search";
+
+interface IndexDistrict {
+  id: string;
+  name: string;
+  state_code: string;
+  state_name: string;
+}
 
 export default function SearchDirectoryPage() {
   const router = useRouter();
@@ -25,6 +33,20 @@ export default function SearchDirectoryPage() {
 
   const stateInputRef = useRef<HTMLInputElement | null>(null);
   const districtInputRef = useRef<HTMLInputElement | null>(null);
+
+  const [allDistrictsIndex, setAllDistrictsIndex] = useState<IndexDistrict[]>([]);
+
+  // Load all districts index for fast nationwide fuzzy lookup
+  useEffect(() => {
+    fetch("/data/districts-index.json")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setAllDistrictsIndex(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Focus inputs when search toggled
   useEffect(() => {
@@ -54,7 +76,13 @@ export default function SearchDirectoryPage() {
       if (isMounted) {
         if (data && data.length > 0) {
           setDistrictsList(data);
-          setSelectedDistrictId(data[0].district_id);
+          // Preserve district if it exists in the newly loaded state, else pick first
+          setSelectedDistrictId((prev) => {
+            if (prev && data.some((d) => d.district_id === prev)) {
+              return prev;
+            }
+            return data[0].district_id;
+          });
         } else {
           setDistrictsList([]);
           setSelectedDistrictId("");
@@ -74,21 +102,29 @@ export default function SearchDirectoryPage() {
 
   const filteredStates = useMemo(() => {
     if (!stateSearchQuery.trim()) return STATES;
-    const q = stateSearchQuery.toLowerCase();
-    return STATES.filter(
-      (s) => s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q)
-    );
+    return fuzzyFilter(STATES, stateSearchQuery, (s) => [s.name, s.code]);
   }, [stateSearchQuery]);
 
   const filteredDistricts = useMemo(() => {
     if (!districtSearchQuery.trim()) return districtsList;
-    const q = districtSearchQuery.toLowerCase();
-    return districtsList.filter(
-      (d) =>
-        d.district_name.toLowerCase().includes(q) ||
-        d.district_id.toLowerCase().includes(q)
+    return fuzzyFilter(
+      districtsList,
+      districtSearchQuery,
+      (d) => [d.district_name, d.district_id]
     );
   }, [districtsList, districtSearchQuery]);
+
+  const otherStateMatches = useMemo(() => {
+    if (!districtSearchQuery.trim() || allDistrictsIndex.length === 0) return [];
+    const otherDistricts = allDistrictsIndex.filter(
+      (d) => d.state_code !== selectedStateCode
+    );
+    return fuzzyFilter(
+      otherDistricts,
+      districtSearchQuery,
+      (d) => [d.name, d.id, `${d.name} ${d.state_name}`]
+    ).slice(0, 10);
+  }, [allDistrictsIndex, districtSearchQuery, selectedStateCode]);
 
   const selectedDistrict = useMemo(() => {
     return districtsList.find((d) => d.district_id === selectedDistrictId);
@@ -189,11 +225,10 @@ export default function SearchDirectoryPage() {
                     if (showStateSearch) setStateSearchQuery("");
                   }}
                   title={showStateSearch ? "Close state search" : "Search state by name"}
-                  className={`p-2.5 rounded-xl border flex items-center justify-center transition-all cursor-pointer ${
-                    showStateSearch
+                  className={`p-2.5 rounded-xl border flex items-center justify-center transition-all cursor-pointer ${showStateSearch
                       ? "bg-orange-500 border-orange-500 text-white"
                       : "bg-[#0F1117] border-[#2D3148] text-gray-400 hover:text-white hover:border-orange-500/50 hover:bg-[#242838]"
-                  }`}
+                    }`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -211,6 +246,13 @@ export default function SearchDirectoryPage() {
                       placeholder="Type state name..."
                       value={stateSearchQuery}
                       onChange={(e) => setStateSearchQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && filteredStates.length > 0) {
+                          setSelectedStateCode(filteredStates[0].code);
+                          setShowStateSearch(false);
+                          setStateSearchQuery("");
+                        }
+                      }}
                       className="w-full px-3 py-1.5 text-xs bg-[#1A1D27] border border-[#2D3148] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-orange-500"
                     />
                     {stateSearchQuery && (
@@ -235,11 +277,10 @@ export default function SearchDirectoryPage() {
                             setShowStateSearch(false);
                             setStateSearchQuery("");
                           }}
-                          className={`px-3 py-1.5 text-xs flex items-center justify-between cursor-pointer transition-colors ${
-                            selectedStateCode === s.code
+                          className={`px-3 py-1.5 text-xs flex items-center justify-between cursor-pointer transition-colors ${selectedStateCode === s.code
                               ? "bg-orange-500/20 text-orange-400 font-semibold"
                               : "text-gray-300 hover:bg-[#242838] hover:text-white"
-                          }`}
+                            }`}
                         >
                           <span>{s.name}</span>
                           <span className="text-[10px] text-gray-500">{s.code}</span>
@@ -296,11 +337,10 @@ export default function SearchDirectoryPage() {
                   }}
                   disabled={loadingDistricts || districtsList.length === 0}
                   title={showDistrictSearch ? "Close district search" : "Search district by name"}
-                  className={`p-2.5 rounded-xl border flex items-center justify-center transition-all disabled:opacity-50 cursor-pointer ${
-                    showDistrictSearch
+                  className={`p-2.5 rounded-xl border flex items-center justify-center transition-all disabled:opacity-50 cursor-pointer ${showDistrictSearch
                       ? "bg-orange-500 border-orange-500 text-white"
                       : "bg-[#0F1117] border-[#2D3148] text-gray-400 hover:text-white hover:border-orange-500/50 hover:bg-[#242838]"
-                  }`}
+                    }`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -315,9 +355,23 @@ export default function SearchDirectoryPage() {
                     <input
                       ref={districtInputRef}
                       type="text"
-                      placeholder="Type district name..."
+                      placeholder="Type district name (e.g. Ahmedbad, Surath)..."
                       value={districtSearchQuery}
                       onChange={(e) => setDistrictSearchQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          if (filteredDistricts.length > 0) {
+                            setSelectedDistrictId(filteredDistricts[0].district_id);
+                            setShowDistrictSearch(false);
+                            setDistrictSearchQuery("");
+                          } else if (otherStateMatches.length > 0) {
+                            setSelectedStateCode(otherStateMatches[0].state_code);
+                            setSelectedDistrictId(otherStateMatches[0].id);
+                            setShowDistrictSearch(false);
+                            setDistrictSearchQuery("");
+                          }
+                        }
+                      }}
                       className="w-full px-3 py-1.5 text-xs bg-[#1A1D27] border border-[#2D3148] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-orange-500"
                     />
                     {districtSearchQuery && (
@@ -330,28 +384,65 @@ export default function SearchDirectoryPage() {
                     )}
                   </div>
 
-                  <div className="max-h-36 overflow-y-auto divide-y divide-[#2D3148] rounded-lg border border-[#2D3148] bg-[#1A1D27]">
-                    {filteredDistricts.length === 0 ? (
+                  <div className="max-h-48 overflow-y-auto divide-y divide-[#2D3148] rounded-lg border border-[#2D3148] bg-[#1A1D27]">
+                    {filteredDistricts.length === 0 && otherStateMatches.length === 0 ? (
                       <div className="p-3 text-center text-gray-500 text-xs">No matching districts found</div>
                     ) : (
-                      filteredDistricts.map((d) => (
-                        <div
-                          key={d.district_id}
-                          onClick={() => {
-                            setSelectedDistrictId(d.district_id);
-                            setShowDistrictSearch(false);
-                            setDistrictSearchQuery("");
-                          }}
-                          className={`px-3 py-1.5 text-xs flex items-center justify-between cursor-pointer transition-colors ${
-                            selectedDistrictId === d.district_id
-                              ? "bg-orange-500/20 text-orange-400 font-semibold"
-                              : "text-gray-300 hover:bg-[#242838] hover:text-white"
-                          }`}
-                        >
-                          <span>{d.district_name}</span>
-                          <span className="text-[10px] text-gray-500">{d.district_id}</span>
-                        </div>
-                      ))
+                      <>
+                        {filteredDistricts.map((d) => (
+                          <div
+                            key={d.district_id}
+                            onClick={() => {
+                              setSelectedDistrictId(d.district_id);
+                              setShowDistrictSearch(false);
+                              setDistrictSearchQuery("");
+                            }}
+                            className={`px-3 py-2 text-xs flex items-center justify-between cursor-pointer transition-colors ${selectedDistrictId === d.district_id
+                                ? "bg-orange-500/20 text-orange-400 font-semibold"
+                                : "text-gray-300 hover:bg-[#242838] hover:text-white"
+                              }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>{d.district_name}</span>
+                              {districtSearchQuery &&
+                                scoreMatch(districtSearchQuery, d.district_name).matchType === "exact" && (
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold">
+                                    Exact
+                                  </span>
+                                )}
+                            </div>
+                            <span className="text-[10px] text-gray-500">{d.district_id}</span>
+                          </div>
+                        ))}
+
+                        {otherStateMatches.length > 0 && (
+                          <div>
+                            <div className="px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider text-gray-400 bg-[#141722] border-t border-[#2D3148]">
+                              Matches in other states
+                            </div>
+                            {otherStateMatches.map((d) => (
+                              <div
+                                key={d.id}
+                                onClick={() => {
+                                  setSelectedStateCode(d.state_code);
+                                  setSelectedDistrictId(d.id);
+                                  setShowDistrictSearch(false);
+                                  setDistrictSearchQuery("");
+                                }}
+                                className="px-3 py-2 text-xs flex items-center justify-between cursor-pointer transition-colors text-gray-300 hover:bg-[#242838] hover:text-white"
+                              >
+                                <div>
+                                  <span className="font-medium text-white">{d.name}</span>
+                                  <span className="text-[10px] text-orange-400 ml-1.5">
+                                    ({d.state_name})
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-gray-500">{d.id}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

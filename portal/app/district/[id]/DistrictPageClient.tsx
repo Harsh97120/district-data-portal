@@ -14,7 +14,6 @@ import {
 
 import DistrictFingerprint from "@/components/district/DistrictFingerprint";
 import SimilarDistricts from "@/components/district/SimilarDistricts";
-import DevelopmentParadox from "@/components/district/DevelopmentParadox";
 import AskYourDistrict from "@/components/district/AskYourDistrict";
 import DataExplorer from "@/components/district/DataExplorer";
 
@@ -25,13 +24,20 @@ interface DistrictPageClientProps {
   stateCode: string;
 }
 
+// ── Four fixed categories shown as cards in Key Development Dimensions ───────
+const DEVELOPMENT_CATEGORIES = [
+  { key: "health",    label: "Health & Healthcare Access" },
+  { key: "nutrition", label: "Nutrition" },
+  { key: "women",     label: "Women & Gender" },
+  { key: "education", label: "Education" },
+] as const;
+
 export default function DistrictPageClient({
   district,
   allDistricts,
   stateName,
   stateCode,
 }: DistrictPageClientProps) {
-  const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [surveyYear, setSurveyYear] = useState<"NFHS-5" | "NFHS-6">("NFHS-6"); // Default to latest NFHS-6
   const [isAIOpen, setIsAIOpen] = useState(false);
 
@@ -148,123 +154,95 @@ export default function DistrictPageClient({
         </div>
       </div>
 
-      {/* Grid: Fingerprint & Strengths/Gaps */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        <div className="lg:col-span-7">
-          <DistrictFingerprint district={activeDistrict} />
-        </div>
-        {/* Strengths & Gaps Accordion Drill-down (Right 5 Columns) */}
-        <div className="lg:col-span-5 bg-[#1A1D27] border border-[#2D3148] rounded-2xl p-6 flex flex-col justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-white mb-2">Strengths & Gaps</h3>
-            <p className="text-xs text-gray-500 mb-5 leading-normal">
-              Click a dimension card to expand and view its supporting verified indicators
-            </p>
-
-            <div className="space-y-4">
-              {/* Top Strengths */}
-              <div>
-                <h4 className="text-xs font-semibold text-[#66BB6A] uppercase tracking-wider mb-2">
-                  Top Strengths
-                </h4>
-                {Object.entries(dimScores)
-                  .sort((a, b) => b[1] - a[1])
-                  .slice(0, 2)
-                  .map(([key, score]) => {
-                    const info = INDICATOR_CATEGORIES[key as keyof typeof INDICATOR_CATEGORIES];
-                    const isExpanded = expandedSection === `strength-${key}`;
-                    return (
-                      <div
-                        key={key}
-                        className="mb-2 border border-[#2D3148] rounded-xl overflow-hidden bg-[#0F1117]/50"
-                      >
-                        <button
-                          onClick={() => setExpandedSection(isExpanded ? null : `strength-${key}`)}
-                          className="w-full flex items-center justify-between p-3.5 hover:bg-[#242838]/40 transition-colors text-left"
-                        >
-                          <div>
-                            <span className="text-xs font-semibold text-white">{info?.label}</span>
-                            <span className="block text-[10px] text-gray-500 mt-0.5">
-                              {info?.indicators.length} indicators contributing
-                            </span>
-                          </div>
-                          <span className="text-sm font-bold text-[#66BB6A]">{score}</span>
-                        </button>
-                        {isExpanded && (
-                          <div className="px-4 pb-3 pt-1 border-t border-[#2D3148] divide-y divide-[#2D3148]/60 bg-[#0F1117]/90 animate-fade-in text-[11px]">
-                            {info?.indicators.map((field) => (
-                              <div key={field} className="py-2 flex justify-between gap-4">
-                                <span className="text-gray-400 font-medium">
-                                  {METRIC_LABELS[field]?.label}
-                                </span>
-                                <span className="text-[#66BB6A] font-semibold whitespace-nowrap">
-                                  {formatRawValue(field, district[field as keyof DistrictMetrics] as number | null)}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-              </div>
-
-              {/* Development Gaps */}
-              <div>
-                <h4 className="text-xs font-semibold text-[#FFA726] uppercase tracking-wider mb-2">
-                  Development Gaps
-                </h4>
-                {Object.entries(dimScores)
-                  .sort((a, b) => a[1] - b[1])
-                  .slice(0, 2)
-                  .map(([key, score]) => {
-                    const info = INDICATOR_CATEGORIES[key as keyof typeof INDICATOR_CATEGORIES];
-                    const isExpanded = expandedSection === `gap-${key}`;
-                    return (
-                      <div
-                        key={key}
-                        className="mb-2 border border-[#2D3148] rounded-xl overflow-hidden bg-[#0F1117]/50"
-                      >
-                        <button
-                          onClick={() => setExpandedSection(isExpanded ? null : `gap-${key}`)}
-                          className="w-full flex items-center justify-between p-3.5 hover:bg-[#242838]/40 transition-colors text-left"
-                        >
-                          <div>
-                            <span className="text-xs font-semibold text-white">{info?.label}</span>
-                            <span className="block text-[10px] text-gray-500 mt-0.5">
-                              {info?.indicators.length} indicators contributing
-                            </span>
-                          </div>
-                          <span className="text-sm font-bold text-[#EF5350]">{score}</span>
-                        </button>
-                        {isExpanded && (
-                          <div className="px-4 pb-3 pt-1 border-t border-[#2D3148] divide-y divide-[#2D3148]/60 bg-[#0F1117]/90 animate-fade-in text-[11px]">
-                            {info?.indicators.map((field) => (
-                              <div key={field} className="py-2 flex justify-between gap-4">
-                                <span className="text-gray-400 font-medium">
-                                  {METRIC_LABELS[field]?.label}
-                                </span>
-                                <span className="text-[#EF5350] font-semibold whitespace-nowrap">
-                                  {formatRawValue(field, district[field as keyof DistrictMetrics] as number | null)}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          </div>
-        </div>
-
+      {/* District Fingerprint — Enlarged */}
+      <div>
+        <DistrictFingerprint district={activeDistrict} />
       </div>
 
-      {/* Paradox & Outliers */}
-      <div>
-        <DevelopmentParadox district={activeDistrict} allDistricts={activeAllDistricts} />
+      {/* Key Development Dimensions — 2x2 Category Grid */}
+      <div className="bg-[#1A1D27] border border-[#2D3148] rounded-2xl p-6 md:p-8">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <h3 className="text-xl font-bold text-white">Key Development Dimensions</h3>
+            <p className="text-xs sm:text-sm text-gray-400 mt-1">
+              Sectoral performance profiles — compare {activeDistrict.district_name} across core dimensions against state benchmarks.
+            </p>
+          </div>
+          <span className="text-xs text-orange-400/90 font-medium hidden sm:inline-block">
+            Click any category to explore detailed indicators →
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+          {DEVELOPMENT_CATEGORIES.map(({ key, label }) => {
+            const score = dimScores[key] ?? 0;
+            const catInfo = INDICATOR_CATEGORIES[key as keyof typeof INDICATOR_CATEGORIES];
+            const scoreColor =
+              score >= 70 ? "#66BB6A" : score >= 50 ? "#FFA726" : "#EF5350";
+            const barBg =
+              score >= 70 ? "bg-[#66BB6A]" : score >= 50 ? "bg-[#FFA726]" : "bg-[#EF5350]";
+            const statusLabel =
+              score >= 70 ? "Strong Performance" : score >= 50 ? "Moderate Performance" : "Critical Gap";
+
+            return (
+              <Link
+                key={key}
+                href={`/district/${activeDistrict.district_id}/category/${key}?year=${surveyYear}`}
+                className="group relative flex flex-col justify-between p-5 md:p-6 rounded-xl bg-[#0F1117]/80 border border-[#2D3148] hover:border-orange-500/50 hover:bg-[#0F1117] hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-200 cursor-pointer"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-3 mb-4">
+                    <div>
+                      <h4 className="text-base sm:text-lg font-bold text-white group-hover:text-orange-400 transition-colors">
+                        {label}
+                      </h4>
+                      <span className="text-xs text-gray-400 mt-1 block">
+                        {catInfo?.indicators.length} tracked indicators
+                      </span>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <span
+                        className="text-2xl md:text-3xl font-extrabold tabular-nums block"
+                        style={{ color: scoreColor }}
+                      >
+                        {score}
+                      </span>
+                      <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">
+                        / 100
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Score bar & Status */}
+                  <div className="mt-4">
+                    <div className="flex justify-between items-center text-xs mb-1.5 font-medium">
+                      <span className="text-gray-400">{statusLabel}</span>
+                      <span style={{ color: scoreColor }} className="font-bold tabular-nums">
+                        {score}%
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-[#2D3148] overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${barBg}`}
+                        style={{ width: `${score}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5 pt-3.5 border-t border-[#2D3148]/60 flex items-center justify-between text-xs text-gray-400 group-hover:text-orange-400 transition-colors">
+                  <span className="font-medium">Explore detailed indicators</span>
+                  <div className="flex items-center gap-1 font-semibold">
+                    <span>Compare</span>
+                    <svg className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
       {/* Peer Comparison */}

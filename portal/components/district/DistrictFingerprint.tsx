@@ -38,11 +38,11 @@ export default function DistrictFingerprint({ district }: DistrictFingerprintPro
   }));
 
   return (
-    <div className="bg-[#1A1D27] border border-[#2D3148] rounded-2xl p-6 relative overflow-hidden">
+    <div className="bg-[#1A1D27] border border-[#2D3148] rounded-2xl p-6 md:p-8 relative overflow-hidden">
       <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
         <div>
-          <h3 className="text-lg font-bold text-white">District Fingerprint</h3>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <h3 className="text-xl font-bold text-white">District Fingerprint</h3>
+          <p className="text-xs sm:text-sm text-gray-400 mt-1">
             Derived developmental profile across core dimensions
           </p>
         </div>
@@ -72,20 +72,20 @@ export default function DistrictFingerprint({ district }: DistrictFingerprintPro
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row items-center gap-6 justify-center">
+      <div className="flex flex-col lg:flex-row items-center gap-8 justify-between">
         {/* Radar Chart */}
-        <div className="w-full max-w-[280px] h-[260px] flex items-center justify-center">
+        <div className="w-full lg:w-1/2 max-w-[420px] h-[320px] sm:h-[360px] flex items-center justify-center">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
               <PolarGrid stroke={theme === "dark" ? "#2D3148" : "#E5E7EB"} />
               <PolarAngleAxis
                 dataKey="subject"
-                tick={{ fill: theme === "dark" ? "#9CA3AF" : "#5B6472", fontSize: 11, fontWeight: 500 }}
+                tick={{ fill: theme === "dark" ? "#9CA3AF" : "#5B6472", fontSize: 12, fontWeight: 600 }}
               />
               <PolarRadiusAxis
                 angle={30}
                 domain={[0, 100]}
-                tick={{ fill: theme === "dark" ? "#4B5563" : "#8B95A5", fontSize: 9 }}
+                tick={{ fill: theme === "dark" ? "#4B5563" : "#8B95A5", fontSize: 10 }}
                 axisLine={false}
               />
               <Radar
@@ -100,7 +100,7 @@ export default function DistrictFingerprint({ district }: DistrictFingerprintPro
         </div>
 
         {/* Legend / Score Indicators */}
-        <div className="grid grid-cols-2 gap-3 flex-1 w-full max-w-md">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 flex-1 w-full">
           {Object.entries(scores).map(([key, val]) => {
             let colorClass = "text-[#66BB6A]"; // Green (>75)
             let bgClass = "bg-[#66BB6A]/10 border-[#66BB6A]/20";
@@ -117,14 +117,14 @@ export default function DistrictFingerprint({ district }: DistrictFingerprintPro
             return (
               <div
                 key={key}
-                className={`p-3 rounded-xl border flex flex-col justify-between ${bgClass}`}
+                className={`p-4 rounded-xl border flex flex-col justify-between transition-transform hover:scale-[1.02] ${bgClass}`}
               >
-                <span className="text-xs text-gray-400 font-medium leading-tight">
+                <span className="text-xs text-gray-300 font-medium leading-tight">
                   {CATEGORY_NAMES[key] || key}
                 </span>
-                <div className="flex items-baseline gap-1 mt-2">
-                  <span className={`text-xl font-bold ${colorClass}`}>{val}</span>
-                  <span className="text-[10px] text-gray-500">/100</span>
+                <div className="flex items-baseline gap-1 mt-3">
+                  <span className={`text-2xl font-bold tabular-nums ${colorClass}`}>{val}</span>
+                  <span className="text-xs text-gray-500">/100</span>
                 </div>
               </div>
             );
