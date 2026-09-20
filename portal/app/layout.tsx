@@ -4,6 +4,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import PageTransition from "@/components/ui/PageTransition";
 import { ThemeProvider } from "@/lib/ThemeContext";
+import { AuthProvider } from "@/lib/AuthContext";
 
 export const metadata: Metadata = {
   title: {
@@ -53,13 +54,15 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen flex flex-col bg-[#0F1117] text-[#F0F0F0] antialiased">
         <ThemeProvider>
-          <Navbar />
-          <main className="flex-1 flex flex-col pt-16">
-            <PageTransition>
-              {children}
-            </PageTransition>
-          </main>
-          <Footer />
+          <AuthProvider>
+            <Navbar />
+            <main className="flex-1 flex flex-col pt-16">
+              <PageTransition>
+                {children}
+              </PageTransition>
+            </main>
+            <Footer />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
