@@ -4,9 +4,7 @@ import {
   getUsersCollection,
   getOtpCollection,
   normalizeEmail,
-  toSafeUser,
 } from "@/lib/models/user";
-import { createSession } from "@/lib/session";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const MAX_VERIFY_ATTEMPTS = 5;
@@ -54,7 +52,7 @@ export async function POST(request: Request) {
     if (new Date(record.expiresAt) <= now) {
       await otpCol.deleteOne({ _id: record._id });
       return NextResponse.json(
-        { error: "This verification code has expired. Please request a new code." },
+        { error: "Verification code has expired. Please request a new code." },
         { status: 400 }
       );
     }
@@ -120,15 +118,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const safeUser = toSafeUser(user);
-
-    // Create session & set HttpOnly cookie
-    await createSession(safeUser);
-
+    // NOTE: DO NOT create a login session or issue session cookies here.
+    // The account is verified, but user must explicitly sign in.
     return NextResponse.json({
       success: true,
-      message: "Email verified successfully! Welcome to India District Portal.",
-      user: safeUser,
+      message: "Email verified successfully. Please sign in to continue.",
     });
   } catch (error: any) {
     console.error("OTP verification error:", error);

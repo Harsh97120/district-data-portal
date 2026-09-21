@@ -44,6 +44,15 @@ html.dark {
   box-sizing: border-box;
 }
 
+/* Hide native browser password reveal / clear icons (Edge / IE / Chromium) */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
+}
+
 /* Scoped, high-performance transitions for background and text color shifts */
 body, header, footer, main, section, div, button, input, select, textarea, span, p, h1, h2, h3, h4, h5, h6, table, tr, td, th {
   transition: background-color 300ms ease-in-out, border-color 300ms ease-in-out, color 300ms ease-in-out, box-shadow 300ms ease-in-out;

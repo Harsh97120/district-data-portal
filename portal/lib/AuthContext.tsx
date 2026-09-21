@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { SafeUser } from "@/lib/models/user";
 
-export type AuthModalView = "login" | "register" | "otp" | "forgot-password";
+export type AuthModalView = "login" | "register" | "otp" | "verified-success" | "forgot-password";
 
 interface AuthContextType {
   user: SafeUser | null;
@@ -37,7 +37,7 @@ interface AuthContextType {
   verifyOtp: (data: { email: string; otp: string }) => Promise<{
     success: boolean;
     error?: string;
-    user?: SafeUser;
+    message?: string;
   }>;
   resendOtp: (email: string) => Promise<{
     success: boolean;
@@ -135,10 +135,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) {
         if (data.requiresVerification) {
           setPendingOtpEmail(data.email || credentials.email || credentials.identifier || "");
-          setAuthModalView("otp");
           return {
             success: false,
-            error: data.error,
+            error: data.error || "Please verify your email before signing in.",
             requiresVerification: true,
             email: data.email || credentials.email || credentials.identifier,
           };
@@ -207,12 +206,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: data.error || "Invalid verification code." };
       }
 
-      if (data.user) {
-        setUser(data.user);
-        closeAuthModal();
-      }
-
-      return { success: true, user: data.user };
+      // Explicitly DO NOT set user or close modal.
+      // User must explicitly sign in after verifying email.
+      return { success: true, message: data.message };
     } catch (error) {
       console.error("Verify OTP error:", error);
       return { success: false, error: "Network error occurred. Please try again." };

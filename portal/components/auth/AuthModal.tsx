@@ -3,6 +3,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/AuthContext";
 
+function maskEmail(email: string): string {
+  if (!email || !email.includes("@")) return email;
+  const [local, domain] = email.split("@");
+  if (local.length <= 1) return `${local}***@${domain}`;
+  return `${local[0]}***@${domain}`;
+}
+
 export default function AuthModal() {
   const {
     isAuthModalOpen,
@@ -22,6 +29,7 @@ export default function AuthModal() {
   const [loginIdentifier, setLoginIdentifier] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
 
   // Register form state
   const [registerFirstName, setRegisterFirstName] = useState("");
@@ -130,6 +138,13 @@ export default function AuthModal() {
       });
       if (!res.success) {
         setErrorMessage(res.error || "Failed to sign in.");
+        if (res.requiresVerification) {
+          setUnverifiedEmail(res.email || loginIdentifier.trim());
+        } else {
+          setUnverifiedEmail(null);
+        }
+      } else {
+        setUnverifiedEmail(null);
       }
     } finally {
       setIsSubmitting(false);
@@ -172,17 +187,22 @@ export default function AuthModal() {
 
     setIsSubmitting(true);
     try {
+      const normalizedUsername = registerUsername.trim().toLowerCase();
+      const normalizedEmail = registerEmail.trim().toLowerCase();
       const res = await register({
         firstName: registerFirstName.trim(),
         lastName: registerLastName.trim(),
-        username: registerUsername.trim().toLowerCase(),
-        email: registerEmail.trim().toLowerCase(),
+        username: normalizedUsername,
+        email: normalizedEmail,
         password: registerPassword,
         confirmPassword: registerConfirmPassword,
       });
 
       if (!res.success) {
         setErrorMessage(res.error || "Failed to create account.");
+      } else {
+        // Pre-fill login identifier for when user reaches Sign In
+        setLoginIdentifier(normalizedUsername || normalizedEmail);
       }
     } finally {
       setIsSubmitting(false);
@@ -234,7 +254,11 @@ export default function AuthModal() {
     try {
       const res = await verifyOtp({ email: pendingOtpEmail, otp });
       if (!res.success) {
-        setErrorMessage(res.error || "Verification failed.");
+        setErrorMessage(res.error || "Invalid verification code.");
+      } else {
+        setErrorMessage(null);
+        setSuccessMessage(null);
+        setAuthModalView("verified-success");
       }
     } finally {
       setIsSubmitting(false);
@@ -280,58 +304,77 @@ export default function AuthModal() {
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-y-auto animate-fade-in"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-3.5 sm:p-6 overflow-y-auto animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) closeAuthModal();
       }}
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-[#1A1D27] border border-[#2D3148] p-6 sm:p-8 shadow-2xl relative my-8 text-[#F0F0F0]"
+        className="w-full max-w-[620px] rounded-2xl bg-[#1A1D27] border border-[#2D3148] p-5 sm:px-8 sm:py-6 shadow-2xl shadow-black/80 relative my-auto text-[#F0F0F0] max-h-[calc(100vh-2rem)] overflow-y-auto"
         role="dialog"
         aria-modal="true"
       >
-        {/* Close Button */}
-        <button
-          onClick={closeAuthModal}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
-          aria-label="Close dialog"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-
-        {/* Brand Header */}
-        <div className="flex items-center gap-2.5 mb-6">
-          <div className="flex flex-col w-5.5 h-3.5 overflow-hidden rounded-sm shadow-sm">
-            <div className="flex-1 bg-[#FF9933]" />
-            <div className="flex-1 bg-white flex items-center justify-center">
-              <div className="w-1 h-1 rounded-full border border-[#000080]" />
+        {/* Header: Logo on left, Close button on right, vertically centered */}
+        <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-[#2D3148]/60">
+          <div className="flex items-center gap-2.5">
+            <div className="flex flex-col w-5.5 h-3.5 overflow-hidden rounded-sm shadow-sm shrink-0">
+              <div className="flex-1 bg-[#FF9933]" />
+              <div className="flex-1 bg-white flex items-center justify-center">
+                <div className="w-1 h-1 rounded-full border border-[#000080]" />
+              </div>
+              <div className="flex-1 bg-[#138808]" />
             </div>
-            <div className="flex-1 bg-[#138808]" />
+            <span className="font-extrabold text-sm sm:text-base text-white tracking-tight">
+              India District Portal
+            </span>
           </div>
-          <span className="font-extrabold text-sm text-white tracking-tight">
-            India District Portal
-          </span>
+
+          <button
+            onClick={closeAuthModal}
+            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer shrink-0"
+            aria-label="Close dialog"
+          >
+            <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         {/* Global Error Banner */}
         {errorMessage && (
-          <div className="mb-5 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-start gap-2.5 animate-fade-in">
-            <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" strokeWidth="2" />
-              <line x1="12" y1="8" x2="12" y2="12" strokeWidth="2" strokeLinecap="round" />
-              <line x1="12" y1="16" x2="12.01" y2="16" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-            <span className="flex-1 leading-relaxed">{errorMessage}</span>
+          <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex flex-col gap-1.5 animate-fade-in">
+            <div className="flex items-start gap-2.5">
+              <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" strokeWidth="2" />
+                <line x1="12" y1="8" x2="12" y2="12" strokeWidth="2" strokeLinecap="round" />
+                <line x1="12" y1="16" x2="12.01" y2="16" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              <span className="flex-1 leading-relaxed">{errorMessage}</span>
+            </div>
+            {unverifiedEmail && authModalView === "login" && (
+              <div className="flex items-center justify-between pt-1.5 border-t border-red-500/20 text-[11px]">
+                <span className="text-gray-400">Account not verified yet?</span>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setPendingOtpEmail(unverifiedEmail);
+                    await resendOtp(unverifiedEmail);
+                    setAuthModalView("otp");
+                  }}
+                  className="text-orange-400 hover:text-orange-300 font-bold underline transition-colors cursor-pointer"
+                >
+                  Resend verification code →
+                </button>
+              </div>
+            )}
           </div>
         )}
 
         {/* Global Success Banner */}
         {successMessage && (
-          <div className="mb-5 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-start gap-2.5 animate-fade-in">
+          <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-start gap-2.5 animate-fade-in">
             <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
             <span className="flex-1 leading-relaxed">{successMessage}</span>
           </div>
@@ -340,21 +383,24 @@ export default function AuthModal() {
         {/* VIEW: LOGIN OR REGISTER */}
         {(authModalView === "login" || authModalView === "register") && (
           <div>
-            {/* Tab Navigation */}
-            <div className="flex border-b border-[#2D3148] mb-6">
+            {/* Tab Navigation: Equal 50/50 width, perfectly aligned active underline */}
+            <div className="w-full flex border-b border-[#2D3148] mb-4">
               <button
                 type="button"
                 onClick={() => {
                   setAuthModalView("login");
                   setErrorMessage(null);
                 }}
-                className={`flex-1 pb-3 text-xs font-bold text-center border-b-2 transition-all cursor-pointer ${
+                className={`flex-1 pb-2.5 text-xs sm:text-sm font-bold text-center transition-colors cursor-pointer relative ${
                   authModalView === "login"
-                    ? "border-orange-500 text-orange-400"
-                    : "border-transparent text-gray-400 hover:text-gray-200"
+                    ? "text-orange-400"
+                    : "text-gray-400 hover:text-gray-200"
                 }`}
               >
                 Sign In
+                {authModalView === "login" && (
+                  <span className="absolute -bottom-px left-0 right-0 h-0.5 bg-orange-500 rounded-full" />
+                )}
               </button>
               <button
                 type="button"
@@ -362,22 +408,25 @@ export default function AuthModal() {
                   setAuthModalView("register");
                   setErrorMessage(null);
                 }}
-                className={`flex-1 pb-3 text-xs font-bold text-center border-b-2 transition-all cursor-pointer ${
+                className={`flex-1 pb-2.5 text-xs sm:text-sm font-bold text-center transition-colors cursor-pointer relative ${
                   authModalView === "register"
-                    ? "border-orange-500 text-orange-400"
-                    : "border-transparent text-gray-400 hover:text-gray-200"
+                    ? "text-orange-400"
+                    : "text-gray-400 hover:text-gray-200"
                 }`}
               >
                 Create Account
+                {authModalView === "register" && (
+                  <span className="absolute -bottom-px left-0 right-0 h-0.5 bg-orange-500 rounded-full" />
+                )}
               </button>
             </div>
 
-            {/* Google OAuth Option */}
+            {/* Google OAuth Button: Matches 100% width of form fields below */}
             <a
               href="/api/auth/google"
-              className="w-full mb-4 py-2.5 px-4 rounded-xl bg-[#0F1117] hover:bg-[#202434] border border-[#2D3148] hover:border-gray-600 text-xs font-semibold text-white flex items-center justify-center gap-3 transition-all active:scale-[0.99] cursor-pointer"
+              className="w-full h-10.5 sm:h-11 rounded-xl bg-[#0F1117] hover:bg-[#202434] border border-[#2D3148] hover:border-gray-600 text-xs sm:text-sm font-semibold text-white flex items-center justify-center gap-3 transition-all active:scale-[0.99] cursor-pointer shadow-sm"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -398,19 +447,20 @@ export default function AuthModal() {
               <span>Continue with Google</span>
             </a>
 
-            {/* Divider */}
-            <div className="relative flex items-center justify-center my-4">
-              <div className="w-full border-t border-[#2D3148]" />
-              <span className="bg-[#1A1D27] px-3 text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+            {/* Centered Horizontal Divider: balanced lines on both sides, single line text */}
+            <div className="flex items-center my-3.5">
+              <div className="flex-1 border-t border-[#2D3148]" />
+              <span className="px-3 text-[10px] sm:text-[11px] font-bold tracking-widest text-gray-400 uppercase whitespace-nowrap">
                 Or with Email
               </span>
+              <div className="flex-1 border-t border-[#2D3148]" />
             </div>
 
             {/* SIGN IN FORM */}
             {authModalView === "login" && (
-              <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <form onSubmit={handleLoginSubmit} className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">
+                  <label className="block text-[11px] font-bold text-gray-300 uppercase tracking-wider">
                     Username or Email
                   </label>
                   <input
@@ -419,13 +469,13 @@ export default function AuthModal() {
                     value={loginIdentifier}
                     onChange={(e) => setLoginIdentifier(e.target.value)}
                     placeholder="e.g. naitikpatel or name@organization.org"
-                    className="w-full rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs text-white px-3.5 py-2.5 transition-colors"
+                    className="w-full h-10.5 sm:h-11 rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs sm:text-sm text-white px-3.5 transition-colors"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">
+                    <label className="text-[11px] font-bold text-gray-300 uppercase tracking-wider">
                       Password
                     </label>
                     <button
@@ -434,7 +484,7 @@ export default function AuthModal() {
                         setForgotEmail(loginIdentifier.includes("@") ? loginIdentifier : "");
                         setAuthModalView("forgot-password");
                       }}
-                      className="text-[11px] text-orange-400 hover:text-orange-300 transition-colors cursor-pointer"
+                      className="text-xs text-orange-400 hover:text-orange-300 font-medium transition-colors cursor-pointer"
                     >
                       Forgot password?
                     </button>
@@ -446,12 +496,12 @@ export default function AuthModal() {
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs text-white px-3.5 py-2.5 pr-10 transition-colors"
+                      className="w-full h-10.5 sm:h-11 rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs sm:text-sm text-white px-3.5 pr-10 transition-colors"
                     />
                     <button
                       type="button"
                       onClick={() => setShowLoginPassword(!showLoginPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
+                      className="w-8 h-8 flex items-center justify-center absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors cursor-pointer rounded-lg hover:bg-white/5"
                       aria-label={showLoginPassword ? "Hide password" : "Show password"}
                     >
                       {showLoginPassword ? (
@@ -471,7 +521,7 @@ export default function AuthModal() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-sm shadow-orange-500/10 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 mt-3"
+                  className="w-full h-10.5 sm:h-11 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-xs sm:text-sm font-bold transition-all shadow-sm shadow-orange-500/15 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 mt-3.5"
                 >
                   {isSubmitting ? (
                     <>
@@ -483,7 +533,7 @@ export default function AuthModal() {
                   )}
                 </button>
 
-                <div className="text-center pt-2">
+                <div className="text-center pt-1.5">
                   <p className="text-xs text-gray-400">
                     Don&apos;t have an account?{" "}
                     <button
@@ -501,13 +551,13 @@ export default function AuthModal() {
               </form>
             )}
 
-            {/* REGISTER FORM */}
+            {/* REGISTER FORM: Two-column desktop layout for Names & Passwords to completely eliminate vertical scrolling */}
             {authModalView === "register" && (
-              <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
-                {/* First Name & Last Name (2 columns on desktop, stacked on mobile) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <form onSubmit={handleRegisterSubmit} className="space-y-3">
+                {/* Row 1: First Name & Last Name (2 columns on desktop, stacked on mobile) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div className="space-y-1">
-                    <label className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">
+                    <label className="block text-[11px] font-bold text-gray-300 uppercase tracking-wider">
                       First Name
                     </label>
                     <input
@@ -516,11 +566,11 @@ export default function AuthModal() {
                       value={registerFirstName}
                       onChange={(e) => setRegisterFirstName(e.target.value)}
                       placeholder="e.g. Naitik"
-                      className="w-full rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs text-white px-3.5 py-2.5 transition-colors"
+                      className="w-full h-10.5 sm:h-11 rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs sm:text-sm text-white px-3.5 transition-colors"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">
+                    <label className="block text-[11px] font-bold text-gray-300 uppercase tracking-wider">
                       Last Name
                     </label>
                     <input
@@ -529,13 +579,14 @@ export default function AuthModal() {
                       value={registerLastName}
                       onChange={(e) => setRegisterLastName(e.target.value)}
                       placeholder="e.g. Patel"
-                      className="w-full rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs text-white px-3.5 py-2.5 transition-colors"
+                      className="w-full h-10.5 sm:h-11 rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs sm:text-sm text-white px-3.5 transition-colors"
                     />
                   </div>
                 </div>
 
+                {/* Row 2: Username (full width) */}
                 <div className="space-y-1">
-                  <label className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">
+                  <label className="block text-[11px] font-bold text-gray-300 uppercase tracking-wider">
                     Username
                   </label>
                   <input
@@ -544,15 +595,16 @@ export default function AuthModal() {
                     value={registerUsername}
                     onChange={(e) => setRegisterUsername(e.target.value)}
                     placeholder="e.g. naitikpatel"
-                    className="w-full rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs text-white px-3.5 py-2.5 transition-colors"
+                    className="w-full h-10.5 sm:h-11 rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs sm:text-sm text-white px-3.5 transition-colors"
                   />
-                  <p className="text-[10px] text-gray-500">
+                  <p className="text-[10.5px] text-gray-400 mt-0.5">
                     3–30 characters (letters, numbers, _ and .)
                   </p>
                 </div>
 
+                {/* Row 3: Email Address (full width) */}
                 <div className="space-y-1">
-                  <label className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">
+                  <label className="block text-[11px] font-bold text-gray-300 uppercase tracking-wider">
                     Email Address
                   </label>
                   <input
@@ -561,95 +613,98 @@ export default function AuthModal() {
                     value={registerEmail}
                     onChange={(e) => setRegisterEmail(e.target.value)}
                     placeholder="name@organization.org"
-                    className="w-full rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs text-white px-3.5 py-2.5 transition-colors"
+                    className="w-full h-10.5 sm:h-11 rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs sm:text-sm text-white px-3.5 transition-colors"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showRegisterPassword ? "text" : "password"}
-                      required
-                      value={registerPassword}
-                      onChange={(e) => setRegisterPassword(e.target.value)}
-                      placeholder="At least 8 characters"
-                      className="w-full rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs text-white px-3.5 py-2.5 pr-10 transition-colors"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
-                      aria-label={showRegisterPassword ? "Hide password" : "Show password"}
-                    >
-                      {showRegisterPassword ? (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                        </svg>
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      )}
-                    </button>
+                {/* Row 4: Password & Confirm Password side-by-side on desktop */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
+                  <div className="space-y-1">
+                    <label className="block text-[11px] font-bold text-gray-300 uppercase tracking-wider">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showRegisterPassword ? "text" : "password"}
+                        required
+                        value={registerPassword}
+                        onChange={(e) => setRegisterPassword(e.target.value)}
+                        placeholder="At least 8 characters"
+                        className="w-full h-10.5 sm:h-11 rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs sm:text-sm text-white px-3.5 pr-10 transition-colors"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                        className="w-8 h-8 flex items-center justify-center absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors cursor-pointer rounded-lg hover:bg-white/5"
+                        aria-label={showRegisterPassword ? "Hide password" : "Show password"}
+                      >
+                        {showRegisterPassword ? (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Compact Password Strength Indicator */}
+                    {registerPassword && (
+                      <div className="pt-0.5 space-y-0.5">
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="text-gray-400">Strength:</span>
+                          <span className="font-bold text-gray-300">{strength.label}</span>
+                        </div>
+                        <div className="h-1 w-full bg-gray-800 rounded-full overflow-hidden flex gap-1">
+                          <div className={`h-full rounded-full transition-all duration-300 ${strength.score >= 1 ? strength.color : "bg-transparent"} flex-1`} />
+                          <div className={`h-full rounded-full transition-all duration-300 ${strength.score >= 2 ? strength.color : "bg-transparent"} flex-1`} />
+                          <div className={`h-full rounded-full transition-all duration-300 ${strength.score >= 3 ? strength.color : "bg-transparent"} flex-1`} />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Password Strength Indicator */}
-                  {registerPassword && (
-                    <div className="pt-1 space-y-1">
-                      <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-gray-400">Password strength:</span>
-                        <span className="font-bold text-gray-300">{strength.label}</span>
-                      </div>
-                      <div className="h-1 w-full bg-gray-800 rounded-full overflow-hidden flex gap-1">
-                        <div className={`h-full rounded-full transition-all duration-300 ${strength.score >= 1 ? strength.color : "bg-transparent"} flex-1`} />
-                        <div className={`h-full rounded-full transition-all duration-300 ${strength.score >= 2 ? strength.color : "bg-transparent"} flex-1`} />
-                        <div className={`h-full rounded-full transition-all duration-300 ${strength.score >= 3 ? strength.color : "bg-transparent"} flex-1`} />
-                      </div>
+                  <div className="space-y-1">
+                    <label className="block text-[11px] font-bold text-gray-300 uppercase tracking-wider">
+                      Confirm Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showRegisterConfirmPassword ? "text" : "password"}
+                        required
+                        value={registerConfirmPassword}
+                        onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                        placeholder="Re-enter password"
+                        className="w-full h-10.5 sm:h-11 rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs sm:text-sm text-white px-3.5 pr-10 transition-colors"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)}
+                        className="w-8 h-8 flex items-center justify-center absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors cursor-pointer rounded-lg hover:bg-white/5"
+                        aria-label={showRegisterConfirmPassword ? "Hide password" : "Show password"}
+                      >
+                        {showRegisterConfirmPassword ? (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
                     </div>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">
-                    Confirm Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showRegisterConfirmPassword ? "text" : "password"}
-                      required
-                      value={registerConfirmPassword}
-                      onChange={(e) => setRegisterConfirmPassword(e.target.value)}
-                      placeholder="Re-enter password"
-                      className="w-full rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs text-white px-3.5 py-2.5 pr-10 transition-colors"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
-                      aria-label={showRegisterConfirmPassword ? "Hide password" : "Show password"}
-                    >
-                      {showRegisterConfirmPassword ? (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                        </svg>
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      )}
-                    </button>
                   </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-sm shadow-orange-500/10 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 mt-3"
+                  className="w-full h-10.5 sm:h-11.5 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-xs sm:text-sm font-bold transition-all shadow-sm shadow-orange-500/15 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 mt-4"
                 >
                   {isSubmitting ? (
                     <>
@@ -683,7 +738,7 @@ export default function AuthModal() {
 
         {/* VIEW: OTP VERIFICATION */}
         {authModalView === "otp" && (
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-4 py-2">
             <div className="w-12 h-12 rounded-full bg-orange-500/10 border border-orange-500/30 flex items-center justify-center mx-auto text-orange-400">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -691,17 +746,17 @@ export default function AuthModal() {
             </div>
 
             <div>
-              <h3 className="text-base font-bold text-white">Check Your Email</h3>
+              <h3 className="text-base font-bold text-white">Verify Your Email</h3>
               <p className="text-xs text-gray-400 mt-1">
-                We sent a 6-digit verification code to:
+                We&apos;ve sent a verification code to:
               </p>
-              <div className="inline-block mt-1 px-3 py-1 rounded-full bg-[#0F1117] border border-[#2D3148] text-xs font-semibold text-orange-400">
-                {pendingOtpEmail}
+              <div className="inline-block mt-1.5 px-3.5 py-1 rounded-full bg-[#0F1117] border border-[#2D3148] text-xs font-semibold text-orange-400 font-mono">
+                {maskEmail(pendingOtpEmail)}
               </div>
             </div>
 
             {/* 6-Digit OTP Box Grid */}
-            <form onSubmit={handleOtpSubmit} className="space-y-5 pt-2">
+            <form onSubmit={handleOtpSubmit} className="space-y-4 pt-1">
               <div className="flex justify-center gap-2 sm:gap-3">
                 {otpDigits.map((digit, index) => (
                   <input
@@ -721,22 +776,26 @@ export default function AuthModal() {
                 ))}
               </div>
 
-              <div className="flex items-center justify-between text-xs text-gray-400 px-2">
-                <span>Code expires in 5 mins</span>
-                {isResendActive ? (
-                  <button
-                    type="button"
-                    onClick={handleResendClick}
-                    disabled={isSubmitting}
-                    className="text-orange-400 hover:text-orange-300 font-bold transition-colors cursor-pointer"
-                  >
-                    Resend Code
-                  </button>
-                ) : (
-                  <span className="text-gray-500">
-                    Resend in <span className="font-mono text-gray-400">{resendCooldown}s</span>
-                  </span>
-                )}
+              {/* Resend & Expiration */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-1 text-xs text-gray-400 px-1 pt-1">
+                <span className="text-gray-400">Code expires in 5 minutes</span>
+                <div className="text-right">
+                  <span className="text-gray-400">Didn&apos;t receive the code? </span>
+                  {isResendActive ? (
+                    <button
+                      type="button"
+                      onClick={handleResendClick}
+                      disabled={isSubmitting}
+                      className="text-orange-400 hover:text-orange-300 font-bold transition-colors cursor-pointer underline"
+                    >
+                      Resend OTP
+                    </button>
+                  ) : (
+                    <span className="text-gray-500">
+                      Resend in <span className="font-mono text-gray-400">{resendCooldown}s</span>
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Dev Note Hint */}
@@ -747,7 +806,7 @@ export default function AuthModal() {
               <button
                 type="submit"
                 disabled={isSubmitting || otpDigits.some((d) => !d)}
-                className="w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-sm shadow-orange-500/10 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
+                className="w-full h-11 sm:h-12 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-xs sm:text-sm font-bold transition-all shadow-sm shadow-orange-500/15 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 mt-2"
               >
                 {isSubmitting ? (
                   <>
@@ -755,14 +814,14 @@ export default function AuthModal() {
                     <span>Verifying Code...</span>
                   </>
                 ) : (
-                  <span>Verify & Sign In</span>
+                  <span>Verify Email</span>
                 )}
               </button>
 
               <button
                 type="button"
                 onClick={() => setAuthModalView("register")}
-                className="text-xs text-gray-400 hover:text-white transition-colors cursor-pointer"
+                className="text-xs text-gray-400 hover:text-white transition-colors cursor-pointer block mx-auto pt-1"
               >
                 ← Back to registration
               </button>
@@ -770,9 +829,46 @@ export default function AuthModal() {
           </div>
         )}
 
+        {/* VIEW: EMAIL VERIFIED SUCCESS */}
+        {authModalView === "verified-success" && (
+          <div className="text-center space-y-5 py-4">
+            <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400 shadow-lg shadow-emerald-500/5">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-lg font-bold text-white flex items-center justify-center gap-1.5">
+                <span className="text-emerald-400 font-extrabold">✓</span> Email Verified
+              </h3>
+              <p className="text-sm text-gray-200">
+                Your account has been created successfully.
+              </p>
+              <p className="text-xs text-gray-400">
+                Please sign in to continue.
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthModalView("login");
+                  setErrorMessage(null);
+                  setSuccessMessage(null);
+                }}
+                className="w-full h-11 sm:h-12 rounded-xl bg-orange-500 hover:bg-orange-400 text-white text-xs sm:text-sm font-bold transition-all shadow-sm shadow-orange-500/15 active:scale-[0.99] cursor-pointer"
+              >
+                Continue to Sign In
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* VIEW: FORGOT PASSWORD */}
         {authModalView === "forgot-password" && (
-          <div className="space-y-4">
+          <div className="space-y-4 py-2">
             <div className="text-center space-y-2">
               <div className="w-12 h-12 rounded-full bg-orange-500/10 border border-orange-500/30 flex items-center justify-center mx-auto text-orange-400">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -796,15 +892,15 @@ export default function AuthModal() {
                     setForgotSuccess(false);
                     setAuthModalView("login");
                   }}
-                  className="w-full py-2.5 rounded-xl bg-[#0F1117] hover:bg-[#202434] border border-[#2D3148] text-white text-xs font-bold transition-colors cursor-pointer"
+                  className="w-full h-11 sm:h-12 rounded-xl bg-[#0F1117] hover:bg-[#202434] border border-[#2D3148] text-white text-xs sm:text-sm font-bold transition-colors cursor-pointer"
                 >
                   Return to Sign In
                 </button>
               </div>
             ) : (
               <form onSubmit={handleForgotSubmit} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-bold text-gray-300 uppercase tracking-wider">
                     Email Address
                   </label>
                   <input
@@ -813,14 +909,14 @@ export default function AuthModal() {
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
                     placeholder="name@organization.org"
-                    className="w-full rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs text-white px-3.5 py-2.5 transition-colors"
+                    className="w-full h-11 sm:h-12 rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none text-xs sm:text-sm text-white px-4 transition-colors"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-sm shadow-orange-500/10 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full h-11 sm:h-12 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-xs sm:text-sm font-bold transition-all shadow-sm shadow-orange-500/15 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <>

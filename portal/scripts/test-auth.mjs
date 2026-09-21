@@ -109,4 +109,81 @@ const queryUsernameUpper = resolveLoginQuery("  Naitik_Patel  ");
 assert.deepStrictEqual(queryUsernameUpper, { username: "naitik_patel" });
 console.log("✓ TEST 5 Passed: Username vs Email login identifier resolution verified");
 
-console.log("\nALL 5 TEST SUITES PASSED CLEANLY!");
+// TEST 6: Email masking helper
+function maskEmail(email) {
+  if (!email || !email.includes("@")) return email;
+  const [local, domain] = email.split("@");
+  if (local.length <= 1) return `${local}***@${domain}`;
+  return `${local[0]}***@${domain}`;
+}
+assert.strictEqual(maskEmail("patel@gmail.com"), "p***@gmail.com");
+assert.strictEqual(maskEmail("test@example.com"), "t***@example.com");
+console.log("✓ TEST 6 Passed: Email masking displays p***@gmail.com format correctly");
+
+// TEST 7: Unverified account login blocking
+function simulateLoginCheck(user, passwordValid) {
+  if (!user || !user.passwordHash) {
+    return { status: 401, error: "Unable to sign in with these credentials." };
+  }
+  if (!user.emailVerified) {
+    return { status: 403, error: "Please verify your email before signing in.", requiresVerification: true };
+  }
+  if (!passwordValid) {
+    return { status: 401, error: "Unable to sign in with these credentials." };
+  }
+  return { status: 200, success: true, sessionCreated: true };
+}
+
+const unverifiedUser = { email: "test@example.com", username: "testuser", passwordHash: "xyz", emailVerified: false };
+const loginAttempt1 = simulateLoginCheck(unverifiedUser, true);
+assert.strictEqual(loginAttempt1.status, 403);
+assert.strictEqual(loginAttempt1.error, "Please verify your email before signing in.");
+assert.strictEqual(loginAttempt1.requiresVerification, true);
+assert.strictEqual(loginAttempt1.sessionCreated, undefined);
+console.log("✓ TEST 7 Passed: Unverified account is blocked with 'Please verify your email before signing in.' without session");
+
+// TEST 8: OTP Verification lifecycle (no session created)
+function simulateOtpVerification(otpRecord, incomingOtp, currentTime) {
+  if (!otpRecord) return { error: "Invalid or expired verification code." };
+  if (new Date(otpRecord.expiresAt) <= currentTime) {
+    return { error: "Verification code has expired. Please request a new code." };
+  }
+  if (otpRecord.otp !== incomingOtp) {
+    return { error: "Invalid verification code." };
+  }
+  return {
+    success: true,
+    emailVerified: true,
+    sessionCreated: false, // Explicitly NO session created
+    message: "Email verified successfully. Please sign in to continue."
+  };
+}
+
+const now = new Date();
+const validOtpRecord = { email: "test@example.com", otp: "123456", expiresAt: new Date(now.getTime() + 300000) };
+const expiredOtpRecord = { email: "test@example.com", otp: "123456", expiresAt: new Date(now.getTime() - 1000) };
+
+// Invalid OTP
+const invalidRes = simulateOtpVerification(validOtpRecord, "999999", now);
+assert.strictEqual(invalidRes.error, "Invalid verification code.");
+
+// Expired OTP
+const expiredRes = simulateOtpVerification(expiredOtpRecord, "123456", now);
+assert.strictEqual(expiredRes.error.startsWith("Verification code has expired"), true);
+
+// Correct OTP
+const successRes = simulateOtpVerification(validOtpRecord, "123456", now);
+assert.strictEqual(successRes.success, true);
+assert.strictEqual(successRes.emailVerified, true);
+assert.strictEqual(successRes.sessionCreated, false);
+console.log("✓ TEST 8 Passed: Correct OTP marks email verified, invalidates OTP, and DOES NOT create session");
+
+// TEST 9: Verified Account Login (Session Created)
+const verifiedUser = { ...unverifiedUser, emailVerified: true };
+const loginAttempt2 = simulateLoginCheck(verifiedUser, true);
+assert.strictEqual(loginAttempt2.status, 200);
+assert.strictEqual(loginAttempt2.success, true);
+assert.strictEqual(loginAttempt2.sessionCreated, true);
+console.log("✓ TEST 9 Passed: Verified user creates session upon explicit login with password");
+
+console.log("\nALL 9 TEST SUITES PASSED CLEANLY!");

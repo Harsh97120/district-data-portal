@@ -1,22 +1,11 @@
 import { NextResponse } from "next/server";
-import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import {
   getUsersCollection,
-  getOtpCollection,
-  normalizeEmail,
   toSafeUser,
 } from "@/lib/models/user";
 import { createSession } from "@/lib/session";
-import { sendVerificationOtpEmail } from "@/lib/mail";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
-
-const OTP_EXPIRY_MS = 5 * 60 * 1000;
-
-function hashOtp(otp: string): string {
-  const secret = process.env.AUTH_SECRET || "district_portal_otp_salt_secret";
-  return crypto.createHash("sha256").update(otp + secret).digest("hex");
-}
 
 export async function POST(request: Request) {
   try {
@@ -54,53 +43,34 @@ export async function POST(request: Request) {
     // Generic error message to prevent account enumeration
     const GENERIC_ERROR = "Unable to sign in with these credentials. Please check your username or email and password.";
 
+    // 1. Check that the account exists
     if (!user || !user.passwordHash) {
       return NextResponse.json({ error: GENERIC_ERROR }, { status: 401 });
     }
 
-    // Compare password with stored bcrypt hash
+    // 2. Check that the email has been verified
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        {
+          error: "Please verify your email before signing in.",
+          requiresVerification: true,
+          email: user.email,
+        },
+        { status: 403 }
+      );
+    }
+
+    // 3. Verify the password against the stored password hash
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
       return NextResponse.json({ error: GENERIC_ERROR }, { status: 401 });
     }
 
-    // Check email verification status
-    if (!user.emailVerified) {
-      // User entered correct password, but email is unverified.
-      // Generate and send a fresh OTP so user can verify immediately.
-      const rawOtp = crypto.randomInt(100000, 1000000).toString();
-      const otpHash = hashOtp(rawOtp);
-      const now = new Date();
-      const otpExpiresAt = new Date(now.getTime() + OTP_EXPIRY_MS);
-
-      const otpCol = await getOtpCollection();
-      await otpCol.updateOne(
-        { email: user.email },
-        {
-          $set: {
-            otpHash,
-            expiresAt: otpExpiresAt,
-            attempts: 0,
-            lastSentAt: now,
-            createdAt: now,
-          },
-        },
-        { upsert: true }
-      );
-
-      await sendVerificationOtpEmail(user.email, user.name, rawOtp);
-
-      return NextResponse.json({
-        requiresVerification: true,
-        email: user.email,
-        message: "Your email is not verified yet. We have sent a 6-digit verification code to your inbox.",
-      });
-    }
-
-    // Create session and set HttpOnly cookie
+    // 4. Create the normal secure authenticated session
     const safeUser = toSafeUser(user);
     await createSession(safeUser);
 
+    // 5. Return the authenticated user
     return NextResponse.json({
       success: true,
       user: safeUser,
