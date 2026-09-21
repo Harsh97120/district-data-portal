@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import type { DistrictMetrics } from "@/lib/types/district";
 import { INDICATOR_CATEGORIES, METRIC_LABELS } from "@/lib/constants";
 import { getDimensionScores, getMetricsForYear } from "@/lib/ml-utils";
+import { logActivity } from "@/lib/activity-logger";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import {
   BarChart,
   Bar,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -20,6 +20,18 @@ import {
 // ── Types ──────────────────────────────────────────────────────────────────
 
 type CategoryKey = "health" | "nutrition" | "women" | "education";
+
+interface BenchmarkChartItem {
+  category: string;
+  district?: number;
+  stateAvg?: number;
+  districtFormatted?: string;
+  stateAvgFormatted?: string;
+  nfhs5?: number;
+  nfhs6?: number;
+  nfhs5Formatted?: string;
+  nfhs6Formatted?: string;
+}
 
 interface CategoryConfig {
   label: string;
@@ -80,39 +92,28 @@ export default function CategoryDetailClient({
   stateName,
   stateCode,
   districtId,
-  defaultYear = "NFHS-6",
 }: CategoryDetailClientProps) {
-  const [surveyYear, setSurveyYear] = useState<"NFHS-5" | "NFHS-6">(defaultYear);
+  // ── Baseline NFHS-5 and Latest NFHS-6 Datasets ───────────────────────────
+  const districtNFHS5 = useMemo(() => getMetricsForYear(district, "NFHS-5"), [district]);
+  const districtNFHS6 = useMemo(() => getMetricsForYear(district, "NFHS-6"), [district]);
 
-  // ── Active data based on survey year ──────────────────────────────────────
-  const activeDistrict = useMemo(
-    () => getMetricsForYear(district, surveyYear),
-    [district, surveyYear]
+  const allDistrictsNFHS5 = useMemo(
+    () => allDistricts.map((d) => getMetricsForYear(d, "NFHS-5")),
+    [allDistricts]
   );
-  const activeAllDistricts = useMemo(
-    () => allDistricts.map((d) => getMetricsForYear(d, surveyYear)),
-    [allDistricts, surveyYear]
+  const allDistrictsNFHS6 = useMemo(
+    () => allDistricts.map((d) => getMetricsForYear(d, "NFHS-6")),
+    [allDistricts]
   );
+
+  // Active district for score hero (latest NFHS-6 status)
+  const activeDistrict = districtNFHS6;
+  const activeAllDistricts = allDistrictsNFHS6;
 
   const config = CATEGORY_CONFIG[categoryKey];
   const catInfo = INDICATOR_CATEGORIES[categoryKey as keyof typeof INDICATOR_CATEGORIES];
 
-  // ── State average per indicator ────────────────────────────────────────────
-  const stateAvgMap = useMemo<Record<string, number | null>>(() => {
-    const map: Record<string, number | null> = {};
-    for (const field of catInfo.indicators) {
-      const values = activeAllDistricts
-        .map((d) => d[field as keyof DistrictMetrics])
-        .filter((v): v is number => typeof v === "number");
-      map[field] =
-        values.length > 0
-          ? parseFloat((values.reduce((a, b) => a + b, 0) / values.length).toFixed(1))
-          : null;
-    }
-    return map;
-  }, [activeAllDistricts, catInfo.indicators]);
-
-  // ── Composite dimension scores ─────────────────────────────────────────────
+  // ── Composite dimension scores (NFHS-6 Latest) ───────────────────────────
   const districtDimScores = useMemo(() => getDimensionScores(activeDistrict), [activeDistrict]);
   const districtCatScore = districtDimScores[categoryKey] ?? 0;
 
@@ -129,78 +130,182 @@ export default function CategoryDetailClient({
 
   // ── Selected indicator state for single-indicator overview ───────────────────
   const [selectedField, setSelectedField] = useState<string>(catInfo.indicators[0] || "");
+  const [chartGrouping, setChartGrouping] = useState<"period" | "entity">("period");
+
   const activeField = (catInfo.indicators as readonly string[]).includes(selectedField)
     ? selectedField
     : catInfo.indicators[0];
 
   const selectedMeta = METRIC_LABELS[activeField];
-  const selectedDistrictVal = activeDistrict[activeField as keyof DistrictMetrics] as number | null;
-  const selectedStateAvg = stateAvgMap[activeField] ?? null;
   const unit = selectedMeta?.unit ?? "%";
   const isNegative = selectedMeta?.direction === "negative";
 
-  const isDistrictBetter =
-    selectedDistrictVal !== null && selectedStateAvg !== null
-      ? !isNegative
-        ? selectedDistrictVal >= selectedStateAvg
-        : selectedDistrictVal <= selectedStateAvg
+  // Restore indicator selection from URL query if navigated from My Activity
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      const ind = sp.get("indicator");
+      if (ind && (catInfo.indicators as readonly string[]).includes(ind)) {
+        setSelectedField(ind);
+      }
+    }
+  }, [catInfo.indicators]);
+
+  // Log INDICATOR_VIEW activity asynchronously for authenticated users
+  useEffect(() => {
+    if (activeField && districtId) {
+      logActivity({
+        actionType: "INDICATOR_VIEW",
+        districtId,
+        districtName: district.district_name,
+        stateName,
+        stateCode,
+        indicatorId: activeField,
+        indicatorLabel: selectedMeta?.label,
+        category: categoryKey,
+        dataset: "NFHS-6",
+      });
+    }
+  }, [activeField, districtId, district.district_name, stateName, stateCode, categoryKey, selectedMeta?.label]);
+
+  const districtVal5 = districtNFHS5[activeField as keyof DistrictMetrics] as number | null;
+  const districtVal6 = districtNFHS6[activeField as keyof DistrictMetrics] as number | null;
+
+  const stateAvg5 = useMemo(() => {
+    const values = allDistrictsNFHS5
+      .map((d) => d[activeField as keyof DistrictMetrics])
+      .filter((v): v is number => typeof v === "number");
+    return values.length > 0
+      ? parseFloat((values.reduce((a, b) => a + b, 0) / values.length).toFixed(1))
+      : null;
+  }, [allDistrictsNFHS5, activeField]);
+
+  const stateAvg6 = useMemo(() => {
+    const values = allDistrictsNFHS6
+      .map((d) => d[activeField as keyof DistrictMetrics])
+      .filter((v): v is number => typeof v === "number");
+    return values.length > 0
+      ? parseFloat((values.reduce((a, b) => a + b, 0) / values.length).toFixed(1))
+      : null;
+  }, [allDistrictsNFHS6, activeField]);
+
+  const districtChange =
+    districtVal5 !== null && districtVal6 !== null
+      ? parseFloat((districtVal6 - districtVal5).toFixed(1))
       : null;
 
-  const rawDelta =
-    selectedDistrictVal !== null && selectedStateAvg !== null
-      ? parseFloat((selectedDistrictVal - selectedStateAvg).toFixed(1))
+  const stateChange =
+    stateAvg5 !== null && stateAvg6 !== null
+      ? parseFloat((stateAvg6 - stateAvg5).toFixed(1))
       : null;
 
-  const perfColor =
-    isDistrictBetter === null
-      ? "#6B7280"
-      : isDistrictBetter
-      ? "#66BB6A"
-      : "#EF5350";
-
-  const singleIndicatorChartData = useMemo(
+  // Chart data grouped by Survey Period: NFHS-5 (2019–21) and NFHS-6 (2023–24)
+  const periodChartData = useMemo<BenchmarkChartItem[]>(
     () => [
       {
-        name: activeDistrict.district_name,
-        value: selectedDistrictVal ?? 0,
-        formattedVal: selectedDistrictVal !== null ? `${selectedDistrictVal.toFixed(1)}${unit}` : "—",
-        role: "Selected District",
-        fill: "#F97316",
+        category: "NFHS-5 (2019–21)",
+        district: districtVal5 ?? 0,
+        stateAvg: stateAvg5 ?? 0,
+        districtFormatted: districtVal5 !== null ? `${districtVal5.toFixed(1)}${unit}` : "—",
+        stateAvgFormatted: stateAvg5 !== null ? `${stateAvg5.toFixed(1)}${unit}` : "—",
       },
       {
-        name: `${stateName} Average`,
-        value: selectedStateAvg ?? 0,
-        formattedVal: selectedStateAvg !== null ? `${selectedStateAvg.toFixed(1)}${unit}` : "—",
-        role: "State Benchmark",
-        fill: "#64748B",
+        category: "NFHS-6 (2023–24)",
+        district: districtVal6 ?? 0,
+        stateAvg: stateAvg6 ?? 0,
+        districtFormatted: districtVal6 !== null ? `${districtVal6.toFixed(1)}${unit}` : "—",
+        stateAvgFormatted: stateAvg6 !== null ? `${stateAvg6.toFixed(1)}${unit}` : "—",
       },
     ],
-    [activeDistrict.district_name, selectedDistrictVal, stateName, selectedStateAvg, unit]
+    [districtVal5, districtVal6, stateAvg5, stateAvg6, unit]
   );
 
-  const yDomainMax = Math.max(
-    100,
-    Math.ceil(((selectedDistrictVal ?? 0) + 10) / 10) * 10,
-    Math.ceil(((selectedStateAvg ?? 0) + 10) / 10) * 10
+  // Chart data grouped by Entity: Selected District vs State Benchmark
+  const entityChartData = useMemo<BenchmarkChartItem[]>(
+    () => [
+      {
+        category: activeDistrict.district_name,
+        nfhs5: districtVal5 ?? 0,
+        nfhs6: districtVal6 ?? 0,
+        nfhs5Formatted: districtVal5 !== null ? `${districtVal5.toFixed(1)}${unit}` : "—",
+        nfhs6Formatted: districtVal6 !== null ? `${districtVal6.toFixed(1)}${unit}` : "—",
+      },
+      {
+        category: `${stateName} Average`,
+        nfhs5: stateAvg5 ?? 0,
+        nfhs6: stateAvg6 ?? 0,
+        nfhs5Formatted: stateAvg5 !== null ? `${stateAvg5.toFixed(1)}${unit}` : "—",
+        nfhs6Formatted: stateAvg6 !== null ? `${stateAvg6.toFixed(1)}${unit}` : "—",
+      },
+    ],
+    [activeDistrict.district_name, stateName, districtVal5, districtVal6, stateAvg5, stateAvg6, unit]
   );
 
-  const SingleIndicatorTooltip = ({
+  const yDomainMax = useMemo(() => {
+    const vals = [districtVal5, districtVal6, stateAvg5, stateAvg6].filter(
+      (v): v is number => typeof v === "number"
+    );
+    const maxVal = vals.length > 0 ? Math.max(...vals) : 100;
+    return unit === "%" ? 100 : Math.max(100, Math.ceil((maxVal * 1.15) / 10) * 10);
+  }, [districtVal5, districtVal6, stateAvg5, stateAvg6, unit]);
+
+  // Concise factual tooltip showing only Entity, Dataset Period, and Value
+  const ConciseBenchmarkTooltip = ({
     active,
     payload,
+    label,
   }: {
     active?: boolean;
-    payload?: { payload: (typeof singleIndicatorChartData)[0]; value: number }[];
+    payload?: Array<{
+      dataKey: string;
+      value: number;
+      name: string;
+      color: string;
+      payload: any;
+    }>;
+    label?: string;
   }) => {
     if (!active || !payload?.length) return null;
-    const item = payload[0].payload;
+
     return (
-      <div className="bg-[#1A1D27] border border-[#2D3148] rounded-xl p-3 shadow-2xl text-xs">
-        <p className="text-gray-400 font-medium text-[10px] uppercase tracking-wider">{item.role}</p>
-        <p className="text-white font-bold text-sm mt-0.5">{item.name}</p>
-        <p className="text-orange-400 font-extrabold text-lg mt-1 tabular-nums">
-          {item.formattedVal}
+      <div className="bg-[#1A1D27] border border-[#2D3148] rounded-xl px-4 py-3 shadow-2xl text-xs space-y-2 pointer-events-none min-w-[190px]">
+        <p className="text-gray-400 font-bold text-[10px] uppercase tracking-wider border-b border-[#2D3148]/60 pb-1.5">
+          {label}
         </p>
+        <div className="space-y-1.5">
+          {payload.map((entry, idx) => (
+            <div key={idx} className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span className="text-gray-300 font-medium text-xs">{entry.name}</span>
+              </div>
+              <span className="font-extrabold text-white text-xs tabular-nums" style={{ color: entry.color }}>
+                {typeof entry.value === "number" ? `${entry.value.toFixed(1)}${unit}` : "—"}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
+    );
+  };
+
+  const renderBarTopLabel = (props: any) => {
+    const { x, y, width, value } = props;
+    if (value === undefined || value === null || value === 0) return null;
+    return (
+      <text
+        x={x + width / 2}
+        y={y - 8}
+        fill="#D1D5DB"
+        textAnchor="middle"
+        fontSize={11}
+        fontWeight={700}
+      >
+        {`${Number(value).toFixed(1)}${unit}`}
+      </text>
     );
   };
 
@@ -236,26 +341,9 @@ export default function CategoryDetailClient({
           </div>
 
           <div className="flex items-center gap-3 flex-shrink-0">
-            {/* Survey Year Toggle */}
-            <div className="flex items-center gap-1 bg-[#0F1117] border border-[#2D3148] p-1 rounded-full shadow-inner">
-              {(["NFHS-5", "NFHS-6"] as const).map((yr) => (
-                <button
-                  key={yr}
-                  onClick={() => setSurveyYear(yr)}
-                  className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all cursor-pointer ${
-                    surveyYear === yr
-                      ? "bg-[#1A1D27] text-orange-400 border border-[#2D3148] shadow-sm"
-                      : "text-gray-500 hover:text-gray-300 border border-transparent"
-                  }`}
-                >
-                  {yr === "NFHS-5" ? "NFHS-5 (2019-21)" : "NFHS-6 (2023-24)"}
-                </button>
-              ))}
-            </div>
-
             <Link
               href={`/district/${districtId}`}
-              className="px-4 py-2 rounded-full bg-[#1A1D27] border border-[#2D3148] text-xs text-gray-300 hover:text-white hover:border-orange-500/40 font-semibold flex items-center gap-1.5 transition-all"
+              className="px-4 py-2 rounded-full bg-[#1A1D27] border border-[#2D3148] text-xs text-gray-300 hover:text-white hover:border-orange-500/40 font-semibold flex items-center gap-1.5 transition-all shadow-sm"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -410,8 +498,8 @@ export default function CategoryDetailClient({
           </div>
         </div>
 
-        {/* Selected Indicator Description & Delta Banner */}
-        <div className="p-4 md:p-5 rounded-xl bg-[#0F1117]/80 border border-[#2D3148] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Selected Indicator Description Banner */}
+        <div className="p-4 rounded-xl bg-[#0F1117]/80 border border-[#2D3148] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2.5">
               <span className="text-base sm:text-lg font-bold text-white">
@@ -431,166 +519,173 @@ export default function CategoryDetailClient({
               {selectedMeta?.description || "Verified NFHS survey indicator data."}
             </p>
           </div>
-
-          {rawDelta !== null && (
-            <div
-              className="flex-shrink-0 px-4 py-2.5 rounded-xl text-center border"
-              style={{
-                color: perfColor,
-                backgroundColor: `${perfColor}15`,
-                borderColor: `${perfColor}35`,
-              }}
-            >
-              <span className="text-lg font-extrabold tabular-nums block">
-                {rawDelta > 0 ? "+" : ""}{rawDelta}{unit}
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider">
-                {isDistrictBetter ? "Outperforming State" : "Lagging State Avg"}
-              </span>
-            </div>
-          )}
         </div>
 
-        {/* Comparison Graph & Side Comparison Metric Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-          {/* Main Comparison Bar Chart */}
-          <div className="lg:col-span-7 bg-[#0F1117]/60 border border-[#2D3148] rounded-xl p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                District vs State Benchmark
-              </h3>
-              <span className="text-[10px] text-gray-500 font-semibold">
-                Unit: {unit}
-              </span>
-            </div>
-
-            <div className="h-[280px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={singleIndicatorChartData}
-                  margin={{ top: 20, right: 24, left: 0, bottom: 20 }}
-                  barCategoryGap="30%"
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="#2D3148"
-                    vertical={false}
-                    horizontal={true}
-                  />
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fill: "#D1D5DB", fontSize: 12, fontWeight: 600 }}
-                    tickLine={false}
-                    axisLine={{ stroke: "#2D3148" }}
-                  />
-                  <YAxis
-                    domain={[0, yDomainMax]}
-                    tick={{ fill: "#6B7280", fontSize: 11 }}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(v) => `${v}${unit}`}
-                  />
-                  <Tooltip content={<SingleIndicatorTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
-                  <Bar
-                    dataKey="value"
-                    radius={[6, 6, 0, 0]}
-                    maxBarSize={64}
-                  >
-                    {singleIndicatorChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="mt-3 flex items-center justify-center gap-6 text-xs text-gray-400 border-t border-[#2D3148]/50 pt-3">
+        {/* Unified District vs State Benchmark Comparison (Full Width) */}
+        <div className="w-full bg-[#0F1117]/70 border border-[#2D3148] rounded-2xl p-5 sm:p-6 space-y-4">
+          {/* Chart Header & Metadata */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2D3148]/60 pb-4">
+            <div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded bg-[#F97316]" />
-                <span className="text-white font-medium">{activeDistrict.district_name}</span>
-                <span className="text-orange-400 font-bold tabular-nums">
-                  ({selectedDistrictVal !== null ? `${selectedDistrictVal.toFixed(1)}${unit}` : "—"})
+                <h3 className="text-xs sm:text-sm font-extrabold text-white uppercase tracking-wider">
+                  District vs State Benchmark
+                </h3>
+                <span className="text-[10px] text-gray-400 font-semibold px-2 py-0.5 rounded bg-[#1A1D27] border border-[#2D3148]">
+                  Unit: {unit}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded bg-[#64748B]" />
-                <span>{stateName} Benchmark</span>
-                <span className="text-gray-300 font-bold tabular-nums">
-                  ({selectedStateAvg !== null ? `${selectedStateAvg.toFixed(1)}${unit}` : "—"})
-                </span>
+              <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                <p className="text-xs text-gray-400 font-medium">
+                  {activeDistrict.district_name} vs {stateName} &bull; {selectedMeta?.label || activeField}
+                </p>
+                {districtChange !== null && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#1A1D27] border border-[#2D3148] text-gray-300">
+                    <span className="text-orange-400">{activeDistrict.district_name}</span>
+                    <span className={districtChange >= 0 ? "text-emerald-400" : "text-rose-400"}>
+                      {districtChange > 0 ? "+" : ""}{districtChange} pp
+                    </span>
+                  </span>
+                )}
+                {stateChange !== null && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#1A1D27] border border-[#2D3148] text-gray-300">
+                    <span className="text-sky-400">{stateName} Avg</span>
+                    <span className={stateChange >= 0 ? "text-emerald-400" : "text-rose-400"}>
+                      {stateChange > 0 ? "+" : ""}{stateChange} pp
+                    </span>
+                  </span>
+                )}
               </div>
+            </div>
+
+            {/* Grouping Toggle */}
+            <div className="flex items-center gap-1 bg-[#1A1D27] border border-[#2D3148] p-1 rounded-lg self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setChartGrouping("period")}
+                className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-all cursor-pointer ${
+                  chartGrouping === "period"
+                    ? "bg-orange-500/20 text-orange-400 border border-orange-500/40 shadow-sm"
+                    : "text-gray-400 hover:text-white border border-transparent"
+                }`}
+              >
+                By Survey Period
+              </button>
+              <button
+                type="button"
+                onClick={() => setChartGrouping("entity")}
+                className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-all cursor-pointer ${
+                  chartGrouping === "entity"
+                    ? "bg-orange-500/20 text-orange-400 border border-orange-500/40 shadow-sm"
+                    : "text-gray-400 hover:text-white border border-transparent"
+                }`}
+              >
+                By District / State
+              </button>
             </div>
           </div>
 
-          {/* Side Comparison Cards */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
-            {/* Selected District Card */}
-            <div className="p-4 rounded-xl bg-[#0F1117]/80 border border-[#F97316]/30 relative overflow-hidden">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-orange-400">
-                    Selected District
-                  </span>
-                  <h4 className="text-base font-bold text-white mt-0.5">{activeDistrict.district_name}</h4>
-                </div>
-                <span className="text-3xl font-black text-orange-400 tabular-nums">
-                  {selectedDistrictVal !== null ? `${selectedDistrictVal.toFixed(1)}${unit}` : "—"}
-                </span>
-              </div>
-              <div className="h-1.5 rounded-full bg-[#2D3148] overflow-hidden mt-3">
-                <div
-                  className="h-full rounded-full bg-orange-500 transition-all duration-500"
-                  style={{ width: `${Math.min(100, Math.max(0, selectedDistrictVal ?? 0))}%` }}
+          {/* Grouped Bar Chart Area */}
+          <div className="h-[320px] sm:h-[360px] w-full pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartGrouping === "period" ? periodChartData : entityChartData}
+                margin={{ top: 25, right: 24, left: 0, bottom: 10 }}
+                barCategoryGap="28%"
+                barGap={8}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#2D3148"
+                  vertical={false}
+                  horizontal={true}
                 />
-              </div>
-            </div>
-
-            {/* State Benchmark Card */}
-            <div className="p-4 rounded-xl bg-[#0F1117]/80 border border-[#2D3148] relative overflow-hidden">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
-                    State Benchmark
-                  </span>
-                  <h4 className="text-base font-bold text-gray-200 mt-0.5">{stateName} Average</h4>
-                </div>
-                <span className="text-3xl font-black text-gray-300 tabular-nums">
-                  {selectedStateAvg !== null ? `${selectedStateAvg.toFixed(1)}${unit}` : "—"}
-                </span>
-              </div>
-              <div className="h-1.5 rounded-full bg-[#2D3148] overflow-hidden mt-3">
-                <div
-                  className="h-full rounded-full bg-gray-500 transition-all duration-500"
-                  style={{ width: `${Math.min(100, Math.max(0, selectedStateAvg ?? 0))}%` }}
+                <XAxis
+                  dataKey="category"
+                  tick={{ fill: "#D1D5DB", fontSize: 12, fontWeight: 700 }}
+                  tickLine={false}
+                  axisLine={{ stroke: "#2D3148" }}
+                  dy={6}
                 />
-              </div>
-            </div>
+                <YAxis
+                  domain={[0, yDomainMax]}
+                  tick={{ fill: "#9CA3AF", fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v) => `${v}${unit}`}
+                />
+                <Tooltip content={<ConciseBenchmarkTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+                {chartGrouping === "period" ? (
+                  <>
+                    <Bar
+                      dataKey="district"
+                      name={activeDistrict.district_name}
+                      fill="#F97316"
+                      radius={[6, 6, 0, 0]}
+                      maxBarSize={56}
+                      label={renderBarTopLabel}
+                    />
+                    <Bar
+                      dataKey="stateAvg"
+                      name={`${stateName} Average`}
+                      fill="#38BDF8"
+                      radius={[6, 6, 0, 0]}
+                      maxBarSize={56}
+                      label={renderBarTopLabel}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Bar
+                      dataKey="nfhs5"
+                      name="NFHS-5 (2019–21)"
+                      fill="#F97316"
+                      radius={[6, 6, 0, 0]}
+                      maxBarSize={56}
+                      label={renderBarTopLabel}
+                    />
+                    <Bar
+                      dataKey="nfhs6"
+                      name="NFHS-6 (2023–24)"
+                      fill="#38BDF8"
+                      radius={[6, 6, 0, 0]}
+                      maxBarSize={56}
+                      label={renderBarTopLabel}
+                    />
+                  </>
+                )}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
 
-            {/* Comparison Analysis Card */}
-            <div className="p-4 rounded-xl bg-[#0F1117]/50 border border-[#2D3148] text-xs space-y-2">
-              <div className="flex items-center justify-between text-gray-300 font-semibold">
-                <span>Comparative Summary</span>
-                <span
-                  className="text-[10px] font-bold px-2 py-0.5 rounded"
-                  style={{
-                    color: perfColor,
-                    backgroundColor: `${perfColor}15`,
-                  }}
-                >
-                  {isDistrictBetter ? "Advantage" : "Lagging"}
-                </span>
-              </div>
-              <p className="text-gray-400 leading-relaxed text-[11px]">
-                {isDistrictBetter === null
-                  ? "Benchmark data is not available for this indicator."
-                  : isDistrictBetter
-                  ? `${activeDistrict.district_name} outperforms the state average by ${Math.abs(rawDelta ?? 0)}${unit}.`
-                  : `${activeDistrict.district_name} trails the state average by ${Math.abs(rawDelta ?? 0)}${unit}.`}
-                {isNegative
-                  ? " As a negative metric, lower rates indicate healthier or more desirable outcomes."
-                  : " As a positive coverage metric, higher percentages denote broader reach and progress."}
-              </p>
-            </div>
+          {/* Compact Legend & Dataset Indicator */}
+          <div className="flex flex-wrap items-center justify-center gap-6 text-xs border-t border-[#2D3148]/60 pt-3">
+            {chartGrouping === "period" ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded bg-[#F97316]" />
+                  <span className="text-white font-semibold">{activeDistrict.district_name}</span>
+                  <span className="text-gray-500 text-[11px]">(Selected District)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded bg-[#38BDF8]" />
+                  <span className="text-white font-semibold">{stateName} Average</span>
+                  <span className="text-gray-500 text-[11px]">(State Benchmark)</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded bg-[#F97316]" />
+                  <span className="text-white font-semibold">NFHS-5</span>
+                  <span className="text-gray-400 text-[11px]">(2019–21 Baseline)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded bg-[#38BDF8]" />
+                  <span className="text-white font-semibold">NFHS-6</span>
+                  <span className="text-gray-400 text-[11px]">(2023–24 Latest)</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -608,7 +703,7 @@ export default function CategoryDetailClient({
               return (
                 <Link
                   key={k}
-                  href={`/district/${districtId}/category/${k}?year=${surveyYear}`}
+                  href={`/district/${districtId}/category/${k}`}
                   className="px-3.5 py-1.5 rounded-lg bg-[#0F1117] border border-[#2D3148] text-xs text-gray-400 hover:text-white hover:border-[#3D4168] transition-all font-medium flex items-center"
                 >
                   <span>{conf.label}</span>

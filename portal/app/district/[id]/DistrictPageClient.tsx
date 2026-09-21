@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { DistrictMetrics } from "@/lib/types/district";
 import { INDICATOR_CATEGORIES, METRIC_LABELS } from "@/lib/constants";
@@ -9,9 +9,10 @@ import {
   getPriorityAreas,
   getMetricsForYear,
 } from "@/lib/ml-utils";
+import { logActivity } from "@/lib/activity-logger";
 
 import DistrictFingerprint from "@/components/district/DistrictFingerprint";
-import SimilarDistricts from "@/components/district/SimilarDistricts";
+import DistrictComparison from "@/components/district/DistrictComparison";
 import AskYourDistrict from "@/components/district/AskYourDistrict";
 import DataExplorer from "@/components/district/DataExplorer";
 
@@ -38,6 +39,34 @@ export default function DistrictPageClient({
 }: DistrictPageClientProps) {
   const [surveyYear, setSurveyYear] = useState<"NFHS-5" | "NFHS-6">("NFHS-6"); // Default to latest NFHS-6
   const [isAIOpen, setIsAIOpen] = useState(false);
+  const [initialCompareId, setInitialCompareId] = useState<string | undefined>(undefined);
+  const [initialIndicator, setInitialIndicator] = useState<string | undefined>(undefined);
+
+  // Restore comparison or AI state from URL parameters if accessed from My Activity
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      const comp = sp.get("compare");
+      const ind = sp.get("indicator");
+      const yr = sp.get("year");
+      if (comp) setInitialCompareId(comp);
+      if (ind) setInitialIndicator(ind);
+      if (yr === "NFHS-5" || yr === "NFHS-6") setSurveyYear(yr);
+      if (sp.get("ai") === "open") setIsAIOpen(true);
+    }
+  }, []);
+
+  // Log DISTRICT_VIEW activity asynchronously for authenticated users
+  useEffect(() => {
+    logActivity({
+      actionType: "DISTRICT_VIEW",
+      districtId: district.district_id,
+      districtName: district.district_name,
+      stateName,
+      stateCode,
+      dataset: surveyYear,
+    });
+  }, [district.district_id, district.district_name, stateName, stateCode, surveyYear]);
 
   // Project baseline data dynamically based on the active survey year
   const activeDistrict = getMetricsForYear(district, surveyYear);
@@ -193,9 +222,17 @@ export default function DistrictPageClient({
         </div>
       </div>
 
-      {/* Peer Comparison */}
-      <div>
-        <SimilarDistricts district={activeDistrict} allDistricts={activeAllDistricts} />
+      {/* Interactive District Comparison */}
+      <div id="comparison">
+        <DistrictComparison
+          currentDistrict={activeDistrict}
+          allDistricts={activeAllDistricts}
+          currentStateName={stateName}
+          currentStateCode={stateCode}
+          surveyYear={surveyYear}
+          initialComparisonId={initialCompareId}
+          initialIndicator={initialIndicator}
+        />
       </div>
 
       {/* Priority Engine ranking */}

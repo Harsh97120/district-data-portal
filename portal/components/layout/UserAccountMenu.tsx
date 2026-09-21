@@ -279,7 +279,7 @@ export default function UserAccountMenu({ user, logout }: UserAccountMenuProps) 
             </Link>
 
             <Link
-              href="/map"
+              href="/activity"
               onClick={() => setIsOpen(false)}
               className="w-full px-3 py-2 text-xs font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors flex items-center gap-2.5 group"
             >
@@ -293,34 +293,11 @@ export default function UserAccountMenu({ user, logout }: UserAccountMenuProps) 
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
               <div className="flex-1 min-w-0">
-                <span className="font-semibold">Map Explorer</span>
-              </div>
-            </Link>
-
-            <Link
-              href="/search"
-              onClick={() => setIsOpen(false)}
-              className="w-full px-3 py-2 text-xs font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors flex items-center gap-2.5 group"
-            >
-              <svg
-                className="w-4 h-4 text-gray-400 group-hover:text-orange-400 transition-colors shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <div className="flex-1 min-w-0">
-                <span className="font-semibold">Search & Indicators</span>
+                <span className="font-semibold">My Activity</span>
               </div>
             </Link>
           </div>

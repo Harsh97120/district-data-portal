@@ -69,6 +69,10 @@ export async function getDb(): Promise<Db> {
         // Password Resets collection indexes (with TTL for automatic expiry)
         db.collection("password_resets").createIndex({ email: 1 }, { background: true }),
         db.collection("password_resets").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0, background: true }),
+
+        // Activities collection indexes (scoped by userId, sorted by date)
+        db.collection("activities").createIndex({ userId: 1, createdAt: -1 }, { background: true }),
+        db.collection("activities").createIndex({ userId: 1, actionType: 1, createdAt: -1 }, { background: true }),
       ]);
       global._indexesInitialized = true;
     } catch (idxErr) {

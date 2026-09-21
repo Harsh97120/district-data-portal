@@ -9,6 +9,7 @@ import {
   type ConversationContext,
 } from "@/lib/district-ai-engine";
 import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
+import { logActivity } from "@/lib/activity-logger";
 
 export interface AskYourDistrictProps {
   district: DistrictMetrics;
@@ -222,6 +223,16 @@ export default function AskYourDistrict({
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsThinking(true);
+
+    // Log AI_QUERY activity asynchronously for authenticated users
+    logActivity({
+      actionType: "AI_QUERY",
+      districtId: district.district_id,
+      districtName: district.district_name,
+      stateName: propStateName,
+      stateCode: propStateCode,
+      query: trimmed,
+    });
 
     // Progressive thinking stages
     setThinkingStage("Retrieving district records...");
