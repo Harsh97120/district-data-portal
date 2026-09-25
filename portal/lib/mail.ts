@@ -1,23 +1,79 @@
 import nodemailer, { type Transporter } from "nodemailer";
 
-const host = process.env.EMAIL_SERVER_HOST;
-const port = parseInt(process.env.EMAIL_SERVER_PORT || "587", 10);
-const user = process.env.EMAIL_SERVER_USER;
-const pass = process.env.EMAIL_SERVER_PASSWORD;
-const from = process.env.EMAIL_FROM || "India District Portal <noreply@districtportal.in>";
-
-const isSmtpConfigured = Boolean(host && user && pass);
-
-let transporter: Transporter | null = null;
-
-if (isSmtpConfigured) {
-  transporter = nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user, pass },
-  });
+interface SmtpConfig {
+  host: string;
+  port: number;
+  secure: boolean;
+  user: string;
+  pass: string;
+  from: string;
 }
+
+function getSmtpConfig(): SmtpConfig | null {
+  const host = process.env.EMAIL_SERVER_HOST?.trim();
+  const user = process.env.EMAIL_SERVER_USER?.trim();
+  const pass = process.env.EMAIL_SERVER_PASSWORD?.trim();
+  const from =
+    process.env.EMAIL_FROM?.trim() ||
+    "India District Portal <noreply@districtportal.in>";
+
+  if (!host || !user || !pass) {
+    return null;
+  }
+
+  // Parse port or default appropriately (465 for Gmail SSL, 587 for STARTTLS)
+  const rawPort = process.env.EMAIL_SERVER_PORT?.trim();
+  const port = rawPort
+    ? parseInt(rawPort, 10)
+    : host.includes("gmail")
+    ? 465
+    : 587;
+  const secure = port === 465;
+
+  return { host, port, secure, user, pass, from };
+}
+
+let cachedTransporter: Transporter | null = null;
+let lastTransporterConfigKey = "";
+
+function getTransporter(): { transporter: Transporter | null; from: string } {
+  const config = getSmtpConfig();
+  if (!config) {
+    return {
+      transporter: null,
+      from:
+        process.env.EMAIL_FROM?.trim() ||
+        "India District Portal <noreply@districtportal.in>",
+    };
+  }
+
+  const configKey = `${config.host}:${config.port}:${config.secure}:${config.user}`;
+  if (cachedTransporter && lastTransporterConfigKey === configKey) {
+    return { transporter: cachedTransporter, from: config.from };
+  }
+
+  cachedTransporter = nodemailer.createTransport({
+    host: config.host,
+    port: config.port,
+    secure: config.secure, // true for 465 (implicit TLS), false for 587 (STARTTLS)
+    auth: {
+      user: config.user,
+      pass: config.pass,
+    },
+    tls: {
+      // Explicit Server Name Indication (SNI) prevents alert 80 with multi-tenant mail gateways
+      servername: config.host,
+      // Require modern TLS (v1.2 or higher)
+      minVersion: "TLSv1.2",
+      // Strict certificate validation (rejectUnauthorized is strictly maintained true)
+      rejectUnauthorized: true,
+    },
+  });
+
+  lastTransporterConfigKey = configKey;
+  return { transporter: cachedTransporter, from: config.from };
+}
+
 
 /**
  * Dispatches an email verification OTP to the user.
@@ -64,7 +120,9 @@ export async function sendVerificationOtpEmail(
 
   const textContent = `Hi ${name || "there"},\n\nYour India District Portal verification code is: ${otp}\n\nThis code expires in 5 minutes.\n\nIf you did not request this code, please ignore this email.`;
 
-  if (transporter && isSmtpConfigured) {
+  const { transporter, from } = getTransporter();
+
+  if (transporter) {
     try {
       await transporter.sendMail({
         from,
@@ -74,15 +132,18 @@ export async function sendVerificationOtpEmail(
         html: htmlContent,
       });
       return;
-    } catch (err) {
-      console.error("Failed to send verification email via SMTP:", err);
+    } catch (err: any) {
+      console.error(
+        `Failed to send verification email via SMTP to ${toEmail}:`,
+        err?.message || "Unknown error"
+      );
       // Fallback to console logging in development
     }
   }
 
   // Development simulation logger
   console.log("\n" + "=".repeat(60));
-  console.log("📧 [DEV EMAIL SIMULATOR — NO SMTP CONFIGURED]");
+  console.log("📧 [DEV EMAIL SIMULATOR — NO SMTP CONFIGURED / FALLBACK]");
   console.log(`To: ${toEmail}`);
   console.log(`Subject: ${subject}`);
   console.log(`Verification OTP: >>> ${otp} <<<`);
@@ -135,7 +196,9 @@ export async function sendPasswordResetEmail(
 
   const textContent = `Hi ${name || "there"},\n\nWe received a request to reset your password.\n\nPlease open this link within 15 minutes to reset your password:\n${resetUrl}\n\nIf you did not request this, please ignore this email.`;
 
-  if (transporter && isSmtpConfigured) {
+  const { transporter, from } = getTransporter();
+
+  if (transporter) {
     try {
       await transporter.sendMail({
         from,
@@ -145,14 +208,17 @@ export async function sendPasswordResetEmail(
         html: htmlContent,
       });
       return;
-    } catch (err) {
-      console.error("Failed to send password reset email via SMTP:", err);
+    } catch (err: any) {
+      console.error(
+        `Failed to send password reset email via SMTP to ${toEmail}:`,
+        err?.message || "Unknown error"
+      );
     }
   }
 
   // Development simulation logger
   console.log("\n" + "=".repeat(60));
-  console.log("📧 [DEV EMAIL SIMULATOR — NO SMTP CONFIGURED]");
+  console.log("📧 [DEV EMAIL SIMULATOR — NO SMTP CONFIGURED / FALLBACK]");
   console.log(`To: ${toEmail}`);
   console.log(`Subject: ${subject}`);
   console.log(`Reset Password Link: ${resetUrl}`);
