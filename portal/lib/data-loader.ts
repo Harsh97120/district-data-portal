@@ -19,6 +19,20 @@ export async function fetchDistrictMetrics(
   const key = stateCode.toUpperCase();
   if (cache[key]) return cache[key];
 
+  if (typeof window === "undefined") {
+    try {
+      const fs = await import("fs/promises");
+      const path = await import("path");
+      const filePath = path.join(process.cwd(), "public", "data", "metrics", `${key}.json`);
+      const fileData = await fs.readFile(filePath, "utf-8");
+      const data: DistrictMetrics[] = JSON.parse(fileData);
+      cache[key] = data;
+      return data;
+    } catch {
+      return null;
+    }
+  }
+
   try {
     const res = await fetch(`/data/metrics/${key}.json`);
     if (!res.ok) return null;
@@ -116,6 +130,21 @@ let districtsIndexCache: DistrictIndexEntry[] | null = null;
  */
 export async function fetchDistrictsIndex(): Promise<DistrictIndexEntry[]> {
   if (districtsIndexCache && districtsIndexCache.length > 0) return districtsIndexCache;
+
+  if (typeof window === "undefined") {
+    try {
+      const fs = await import("fs/promises");
+      const path = await import("path");
+      const filePath = path.join(process.cwd(), "public", "data", "districts-index.json");
+      const fileData = await fs.readFile(filePath, "utf-8");
+      const data: DistrictIndexEntry[] = JSON.parse(fileData);
+      districtsIndexCache = data;
+      return data;
+    } catch {
+      return [];
+    }
+  }
+
   try {
     const res = await fetch("/data/districts-index.json");
     if (!res.ok) return [];

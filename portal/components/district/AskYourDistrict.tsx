@@ -239,6 +239,15 @@ export default function AskYourDistrict({
     const t1 = setTimeout(() => setThinkingStage("Comparing indicators across datasets..."), 280);
     const t2 = setTimeout(() => setThinkingStage("Synthesizing data-grounded insights..."), 520);
 
+    // Keep recent history in context for conversational reference
+    contextRef.current.recentMessages = [
+      ...messages.slice(-8).map((m) => ({
+        sender: m.sender,
+        text: m.text || m.structured?.summary || "",
+      })),
+      { sender: "user", text: trimmed },
+    ];
+
     try {
       const response = await processDistrictQuery(trimmed, contextRef.current);
       clearTimeout(t1);
@@ -521,9 +530,11 @@ export default function AskYourDistrict({
           {[
             { label: "Gaps & Priorities", query: `What are ${dName}'s biggest development gaps?` },
             { label: `Compare with ${peerSample}`, query: `Compare ${dName} with ${peerSample}` },
+            { label: "Child Anaemia", query: `What is child anaemia in ${dName}?` },
+            { label: "Why child anaemia matters", query: "Why is child anaemia important?" },
+            { label: "What is NFHS?", query: "What is NFHS?" },
             { label: `Compare with ${stateName} Avg`, query: `Compare ${dName} with ${stateName} average` },
             { label: "Find Similar Districts", query: `Find districts similar to ${dName}` },
-            { label: "Explain Nutrition", query: "Explain the child nutrition indicators in simple words." },
             { label: "Why is there a difference?", query: `Why does ${dName} differ from ${peerSample} in nutrition?` },
           ].map((chip) => (
             <button
@@ -884,7 +895,7 @@ export default function AskYourDistrict({
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={`Ask about ${dName}, compare with Surat, Pune...`}
+              placeholder={`Ask anything: "Compare with Surat", "What is child anaemia?", "What is NFHS?"...`}
               disabled={isThinking}
               className="flex-1 rounded-xl bg-[#0F1117] border border-[#2D3148] focus:border-orange-500 focus:outline-none text-xs text-white placeholder-gray-500 px-3.5 py-2.5 transition-colors disabled:opacity-50"
             />

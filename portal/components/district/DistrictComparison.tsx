@@ -7,6 +7,7 @@ import { getMetricsForYear } from "@/lib/ml-utils";
 import { scoreMatch, damerauLevenshtein, jaroWinkler, normalizeStr } from "@/lib/fuzzy-search";
 import { fetchDistrictById } from "@/lib/data-loader";
 import { logActivity } from "@/lib/activity-logger";
+import IndicatorSearchSelector from "@/components/district/IndicatorSearchSelector";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -33,17 +34,6 @@ interface SearchSuggestion {
   matchType: string;
 }
 
-// ── Helper: Format indicator categories for dropdown ─────────────────────────
-
-const CATEGORY_KEYS = [
-  "nutrition",
-  "health",
-  "women",
-  "child_wellbeing",
-  "education",
-  "basic_services",
-] as const;
-
 export default function DistrictComparison({
   currentDistrict,
   allDistricts,
@@ -66,8 +56,6 @@ export default function DistrictComparison({
   // ── Indicator & Dataset state ──────────────────────────────────────────────
   const [selectedIndicator, setSelectedIndicator] = useState<string>(initialIndicator || "child_anaemia");
   const [activePeriod, setActivePeriod] = useState<"NFHS-5" | "NFHS-6">(defaultSurveyYear);
-  const [isIndicatorMenuOpen, setIsIndicatorMenuOpen] = useState(false);
-  const indicatorMenuRef = useRef<HTMLDivElement | null>(null);
 
   // Restore initial comparison district if passed via deep-link
   useEffect(() => {
@@ -125,9 +113,6 @@ export default function DistrictComparison({
     function handleClickOutside(e: MouseEvent) {
       if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
         setIsSearchOpen(false);
-      }
-      if (indicatorMenuRef.current && !indicatorMenuRef.current.contains(e.target as Node)) {
-        setIsIndicatorMenuOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -619,9 +604,12 @@ export default function DistrictComparison({
         <div className="w-full bg-[#0F1117]/80 border border-[#2D3148] rounded-2xl p-5 sm:p-7 space-y-6 shadow-lg">
           {/* Indicator Context Header & Selector */}
           <div className="border-b border-[#2D3148]/60 pb-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2.5">
+                  <span className="text-[10px] font-extrabold text-orange-400 uppercase tracking-widest">
+                    Selected Indicator:
+                  </span>
                   <h4 className="text-base sm:text-lg font-black text-white uppercase tracking-tight">
                     {selectedMeta?.label || selectedIndicator}
                   </h4>
@@ -645,64 +633,14 @@ export default function DistrictComparison({
                 </p>
               </div>
 
-              {/* Change Indicator Action */}
-              <div ref={indicatorMenuRef} className="relative flex-shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setIsIndicatorMenuOpen((prev) => !prev)}
-                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#1A1D27] hover:bg-[#242838] border border-[#2D3148] hover:border-orange-500/40 text-xs font-bold text-gray-200 hover:text-white flex items-center justify-between gap-2.5 transition-all cursor-pointer shadow-sm"
-                >
-                  <span>Change Indicator</span>
-                  <svg
-                    className={`w-3.5 h-3.5 text-orange-400 transform transition-transform ${
-                      isIndicatorMenuOpen ? "rotate-180" : ""
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-
-                {isIndicatorMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 z-40 bg-[#1A1D27] border border-[#2D3148] rounded-xl shadow-2xl max-h-80 overflow-y-auto p-2 space-y-2">
-                    {CATEGORY_KEYS.map((catKey) => {
-                      const cat = INDICATOR_CATEGORIES[catKey];
-                      return (
-                        <div key={catKey} className="space-y-1">
-                          <p className="text-[9px] font-extrabold text-orange-400 uppercase tracking-widest px-2.5 pt-1">
-                            {cat.label}
-                          </p>
-                          <div className="space-y-0.5">
-                            {cat.indicators.map((indKey) => {
-                              const meta = METRIC_LABELS[indKey];
-                              const isSelected = indKey === selectedIndicator;
-                              return (
-                                <button
-                                  key={indKey}
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedIndicator(indKey);
-                                    setIsIndicatorMenuOpen(false);
-                                  }}
-                                  className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
-                                    isSelected
-                                      ? "bg-orange-500/20 text-orange-400 font-bold"
-                                      : "text-gray-300 hover:bg-[#242838] hover:text-white"
-                                  }`}
-                                >
-                                  <span className="truncate">{meta?.label || indKey}</span>
-                                  <span className="text-[10px] text-gray-500 ml-2">{meta?.unit}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+              {/* Modern Search-First Indicator Selector */}
+              <div className="w-full lg:w-80 flex-shrink-0">
+                <IndicatorSearchSelector
+                  selectedIndicator={selectedIndicator}
+                  onSelectIndicator={(indicatorKey) => {
+                    setSelectedIndicator(indicatorKey);
+                  }}
+                />
               </div>
             </div>
           </div>
