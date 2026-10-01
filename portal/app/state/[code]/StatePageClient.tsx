@@ -46,21 +46,31 @@ export default function StatePageClient({ stateCode }: StatePageClientProps) {
     setTimeout(() => setSpinning(false), 600);
   }, []);
 
+  const [benchmark, setBenchmark]             = useState<import("@/lib/data-loader").StateBenchmarkEntry | null>(null);
+
   // Fetch metrics dynamically to calculate state averages for the header dashboard
   useEffect(() => {
     import("@/lib/data-loader").then((mod) => {
       mod.fetchDistrictMetrics(stateCode).then(setMetrics);
+      mod.fetchStateBenchmarkByCode(stateCode).then(setBenchmark);
     });
   }, [stateCode]);
 
   const stateInfo = STATE_BY_CODE[stateCode];
 
-  // Computations for state header summary
+  // Computations for state header summary: official Excel benchmark with district-mean fallback
   const totalDistricts = metrics?.length || 0;
-  const avgLiteracy = metrics && totalDistricts > 0
+  const officialLiteracy = benchmark?.["NFHS-5"]?.literacy_rate;
+  const avgLiteracy = typeof officialLiteracy === "number"
+    ? officialLiteracy
+    : metrics && totalDistricts > 0
     ? metrics.reduce((sum, d) => sum + (d.literacy_rate || 0), 0) / totalDistricts
     : 0;
-  const avgSexRatio = metrics && totalDistricts > 0
+
+  const officialSexRatio = benchmark?.["NFHS-5"]?.sex_ratio;
+  const avgSexRatio = typeof officialSexRatio === "number"
+    ? officialSexRatio
+    : metrics && totalDistricts > 0
     ? metrics.reduce((sum, d) => sum + (d.sex_ratio || 0), 0) / totalDistricts
     : 0;
 

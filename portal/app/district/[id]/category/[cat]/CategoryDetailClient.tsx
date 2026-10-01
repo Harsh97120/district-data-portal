@@ -4,8 +4,9 @@ import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import type { DistrictMetrics } from "@/lib/types/district";
 import { INDICATOR_CATEGORIES, METRIC_LABELS } from "@/lib/constants";
-import { getDimensionScores, getMetricsForYear } from "@/lib/ml-utils";
+import { getDimensionScores, getMetricsForYear, getNormalizedScore } from "@/lib/ml-utils";
 import { logActivity } from "@/lib/activity-logger";
+import { fetchStateBenchmarkByCode, type StateBenchmarkEntry } from "@/lib/data-loader";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import {
   BarChart,
@@ -81,6 +82,7 @@ interface CategoryDetailClientProps {
   stateCode: string;
   districtId: string;
   defaultYear?: "NFHS-5" | "NFHS-6";
+  stateBenchmark?: StateBenchmarkEntry | null;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -92,7 +94,19 @@ export default function CategoryDetailClient({
   stateName,
   stateCode,
   districtId,
+  stateBenchmark,
 }: CategoryDetailClientProps) {
+  // Official Excel state benchmark state
+  const [benchmark, setBenchmark] = useState<StateBenchmarkEntry | null>(stateBenchmark || null);
+
+  useEffect(() => {
+    if (!benchmark && stateCode) {
+      fetchStateBenchmarkByCode(stateCode).then((data) => {
+        if (data) setBenchmark(data);
+      });
+    }
+  }, [benchmark, stateCode]);
+
   // ── Baseline NFHS-5 and Latest NFHS-6 Datasets ───────────────────────────
   const districtNFHS5 = useMemo(() => getMetricsForYear(district, "NFHS-5"), [district]);
   const districtNFHS6 = useMemo(() => getMetricsForYear(district, "NFHS-6"), [district]);
@@ -118,11 +132,29 @@ export default function CategoryDetailClient({
   const districtCatScore = districtDimScores[categoryKey] ?? 0;
 
   const stateCatScore = useMemo(() => {
+    // 1. Try official Excel benchmark values for NFHS-6
+    const officialYear = benchmark?.["NFHS-6"] || benchmark?.["NFHS-5"];
+    if (officialYear) {
+      let sum = 0;
+      let count = 0;
+      for (const field of catInfo.indicators) {
+        const val = officialYear[field];
+        if (typeof val === "number") {
+          sum += getNormalizedScore(field, val);
+          count++;
+        }
+      }
+      if (count > 0) {
+        return parseFloat((sum / count).toFixed(1));
+      }
+    }
+
+    // 2. Fallback to mean of all districts in state
     const scores = activeAllDistricts.map((d) => getDimensionScores(d)[categoryKey] ?? 0);
     return scores.length > 0
       ? parseFloat((scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1))
       : 0;
-  }, [activeAllDistricts, categoryKey]);
+  }, [activeAllDistricts, categoryKey, benchmark, catInfo.indicators]);
 
   const scoreDiff = parseFloat((districtCatScore - stateCatScore).toFixed(1));
   const scoreColor =
@@ -172,22 +204,28 @@ export default function CategoryDetailClient({
   const districtVal6 = districtNFHS6[activeField as keyof DistrictMetrics] as number | null;
 
   const stateAvg5 = useMemo(() => {
+    const official = benchmark?.["NFHS-5"]?.[activeField];
+    if (typeof official === "number") return official;
+
     const values = allDistrictsNFHS5
       .map((d) => d[activeField as keyof DistrictMetrics])
       .filter((v): v is number => typeof v === "number");
     return values.length > 0
       ? parseFloat((values.reduce((a, b) => a + b, 0) / values.length).toFixed(1))
       : null;
-  }, [allDistrictsNFHS5, activeField]);
+  }, [allDistrictsNFHS5, activeField, benchmark]);
 
   const stateAvg6 = useMemo(() => {
+    const official = benchmark?.["NFHS-6"]?.[activeField];
+    if (typeof official === "number") return official;
+
     const values = allDistrictsNFHS6
       .map((d) => d[activeField as keyof DistrictMetrics])
       .filter((v): v is number => typeof v === "number");
     return values.length > 0
       ? parseFloat((values.reduce((a, b) => a + b, 0) / values.length).toFixed(1))
       : null;
-  }, [allDistrictsNFHS6, activeField]);
+  }, [allDistrictsNFHS6, activeField, benchmark]);
 
   const districtChange =
     districtVal5 !== null && districtVal6 !== null
@@ -231,7 +269,7 @@ export default function CategoryDetailClient({
         nfhs6Formatted: districtVal6 !== null ? `${districtVal6.toFixed(1)}${unit}` : "—",
       },
       {
-        category: `${stateName} Average`,
+        category: `${stateName} Benchmark`,
         nfhs5: stateAvg5 ?? 0,
         nfhs6: stateAvg6 ?? 0,
         nfhs5Formatted: stateAvg5 !== null ? `${stateAvg5.toFixed(1)}${unit}` : "—",
@@ -413,10 +451,10 @@ export default function CategoryDetailClient({
             </div>
             <p className="text-xs text-gray-500 text-center leading-relaxed">
               {scoreDiff > 0
-                ? `${activeDistrict.district_name} outperforms the state average`
+                ? `${activeDistrict.district_name} outperforms the state benchmark`
                 : scoreDiff < 0
-                ? `${activeDistrict.district_name} lags behind the state average`
-                : "Matches the state average exactly"}
+                ? `${activeDistrict.district_name} lags behind the state benchmark`
+                : "Matches the state benchmark exactly"}
             </p>
             <div className="flex items-center gap-4 text-[10px]">
               <span className="flex items-center gap-1.5">
@@ -428,15 +466,15 @@ export default function CategoryDetailClient({
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-gray-500 inline-block" />
-                <span className="text-gray-400">State Avg</span>
+                <span className="text-gray-400">State Benchmark</span>
               </span>
             </div>
           </div>
 
-          {/* State Average Score */}
+          {/* State Benchmark Score */}
           <div className="text-center">
             <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-2">
-              {stateName} Average
+              {stateName} Benchmark
             </p>
             <p className="text-6xl font-extrabold tabular-nums text-gray-400 leading-none">
               {stateCatScore}

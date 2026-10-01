@@ -156,3 +156,55 @@ export async function fetchDistrictsIndex(): Promise<DistrictIndexEntry[]> {
   }
 }
 
+export interface StateBenchmarkEntry {
+  state_code: string;
+  state_name: string;
+  region: string;
+  "NFHS-5": Record<string, number | null>;
+  "NFHS-6": Record<string, number | null>;
+}
+
+let stateBenchmarksCache: Record<string, StateBenchmarkEntry> | null = null;
+
+/**
+ * Fetch official state benchmark data from /data/state-benchmarks.json.
+ */
+export async function fetchStateBenchmarks(): Promise<Record<string, StateBenchmarkEntry>> {
+  if (stateBenchmarksCache) return stateBenchmarksCache;
+
+  if (typeof window === "undefined") {
+    try {
+      const fs = await import("fs/promises");
+      const path = await import("path");
+      const filePath = path.join(process.cwd(), "public", "data", "state-benchmarks.json");
+      const fileData = await fs.readFile(filePath, "utf-8");
+      const data: Record<string, StateBenchmarkEntry> = JSON.parse(fileData);
+      stateBenchmarksCache = data;
+      return data;
+    } catch {
+      return {};
+    }
+  }
+
+  try {
+    const res = await fetch("/data/state-benchmarks.json");
+    if (!res.ok) return {};
+    const data: Record<string, StateBenchmarkEntry> = await res.json();
+    stateBenchmarksCache = data;
+    return data;
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Get official state benchmark by state code (e.g. "GJ", "MH").
+ */
+export async function fetchStateBenchmarkByCode(
+  stateCode: string
+): Promise<StateBenchmarkEntry | null> {
+  const all = await fetchStateBenchmarks();
+  return all[stateCode.toUpperCase()] ?? null;
+}
+
+

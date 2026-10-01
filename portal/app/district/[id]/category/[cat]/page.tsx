@@ -1,9 +1,10 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import path from "path";
 import fs from "fs";
 import type { DistrictMetrics } from "@/lib/types/district";
 import { STATE_BY_CODE, STATES, INDICATOR_CATEGORIES } from "@/lib/constants";
+import type { StateBenchmarkEntry } from "@/lib/data-loader";
 import CategoryDetailClient from "./CategoryDetailClient";
 
 const VALID_CATEGORIES = ["health", "nutrition", "women", "education"] as const;
@@ -14,6 +15,17 @@ function loadDistrictsFromFs(stateCode: string): DistrictMetrics[] | null {
     const filePath = path.join(process.cwd(), "public", "data", "metrics", `${stateCode.toUpperCase()}.json`);
     const raw = fs.readFileSync(filePath, "utf-8");
     return JSON.parse(raw) as DistrictMetrics[];
+  } catch {
+    return null;
+  }
+}
+
+function loadStateBenchmark(stateCode: string): StateBenchmarkEntry | null {
+  try {
+    const filePath = path.join(process.cwd(), "public", "data", "state-benchmarks.json");
+    const raw = fs.readFileSync(filePath, "utf-8");
+    const all = JSON.parse(raw) as Record<string, StateBenchmarkEntry>;
+    return all[stateCode.toUpperCase()] ?? null;
   } catch {
     return null;
   }
@@ -64,6 +76,7 @@ export default async function CategoryDetailPage({ params, searchParams }: Categ
   if (!district || !districts) notFound();
 
   const stateInfo = STATE_BY_CODE[stateCode];
+  const stateBenchmark = loadStateBenchmark(stateCode);
 
   return (
     <CategoryDetailClient
@@ -74,6 +87,7 @@ export default async function CategoryDetailPage({ params, searchParams }: Categ
       stateCode={stateCode}
       districtId={decoded}
       defaultYear={year === "NFHS-5" ? "NFHS-5" : "NFHS-6"}
+      stateBenchmark={stateBenchmark}
     />
   );
 }
