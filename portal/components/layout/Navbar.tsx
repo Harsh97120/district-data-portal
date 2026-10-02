@@ -117,9 +117,6 @@ export default function Navbar() {
                     State: {activeStateName}
                   </Link>
                 )}
-                <span className="px-3 py-1 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full text-[10px] font-bold tracking-wide ml-2 uppercase">
-                  NFHS-5 Data
-                </span>
               </nav>
 
               <div className="w-px h-5 bg-[#2D3148]" />
