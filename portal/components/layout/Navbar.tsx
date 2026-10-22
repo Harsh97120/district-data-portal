@@ -56,7 +56,7 @@ export default function Navbar() {
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           scrolled
-            ? "bg-[#0F1117]/85 backdrop-blur-md border-b border-[#2D3148] shadow-sm shadow-black/5"
+            ? "bg-[#0F1117]/90 backdrop-blur-md border-b border-[#2D3148] shadow-xs"
             : "bg-transparent border-b border-transparent"
         }`}
       >
@@ -64,14 +64,14 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-16">
             {/* Logo / Title */}
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="flex flex-col w-5.5 h-3.5 overflow-hidden rounded-sm shadow-sm">
+              <div className="flex flex-col w-5.5 h-3.5 overflow-hidden rounded-sm shadow-xs">
                 <div className="flex-1 bg-[#FF9933]" />
                 <div className="flex-1 bg-white flex items-center justify-center">
                   <div className="w-1 h-1 rounded-full border border-[#000080]" />
                 </div>
                 <div className="flex-1 bg-[#138808]" />
               </div>
-              <span className="font-extrabold text-base text-white tracking-tight group-hover:text-orange-400 transition-colors">
+              <span className="font-bold text-base text-white tracking-tight group-hover:text-orange-400 transition-colors">
                 India District Portal
               </span>
             </Link>
@@ -81,38 +81,48 @@ export default function Navbar() {
               <nav className="flex items-center gap-2">
                 <Link
                   href="/"
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-medium tracking-wide transition-all duration-200 ${
                     pathname === "/"
-                      ? "bg-orange-500/10 text-orange-400 border border-orange-500/20"
-                      : "text-gray-400 hover:text-white border border-transparent"
+                      ? "bg-orange-500/10 text-orange-400 border border-orange-500/25"
+                      : "text-gray-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
                   }`}
                 >
                   Home
                 </Link>
                 <Link
                   href="/map"
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-medium tracking-wide transition-all duration-200 ${
                     pathname === "/map"
-                      ? "bg-orange-500/10 text-orange-400 border border-orange-500/20"
-                      : "text-gray-400 hover:text-white border border-transparent"
+                      ? "bg-orange-500/10 text-orange-400 border border-orange-500/25"
+                      : "text-gray-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
                   }`}
                 >
                   Map Explorer
                 </Link>
                 <Link
                   href="/search"
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-medium tracking-wide transition-all duration-200 ${
                     pathname === "/search"
-                      ? "bg-orange-500/10 text-orange-400 border border-orange-500/20"
-                      : "text-gray-400 hover:text-white border border-transparent"
+                      ? "bg-orange-500/10 text-orange-400 border border-orange-500/25"
+                      : "text-gray-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
                   }`}
                 >
                   Search & Filter
                 </Link>
+                <Link
+                  href="/about"
+                  className={`px-3 py-1.5 rounded-xl text-xs font-medium tracking-wide transition-all duration-200 ${
+                    pathname === "/about"
+                      ? "bg-orange-500/10 text-orange-400 border border-orange-500/25"
+                      : "text-gray-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
+                  }`}
+                >
+                  About
+                </Link>
                 {activeStateName && activeStateCode && (
                   <Link
                     href={`/state/${activeStateCode}`}
-                    className="px-3 py-1.5 rounded-xl text-xs font-bold tracking-wide bg-orange-500/5 text-orange-400 border border-orange-500/15 hover:bg-orange-500/10 transition-all duration-200"
+                    className="px-3 py-1.5 rounded-xl text-xs font-medium tracking-wide bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/15 transition-all duration-200"
                   >
                     State: {activeStateName}
                   </Link>
@@ -125,7 +135,7 @@ export default function Navbar() {
                 <button
                   onClick={toggleTheme}
                   title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-                  className="p-1.5 rounded-xl border border-[#2D3148] hover:border-orange-500/50 bg-[#1A1D27]/50 text-gray-400 hover:text-white transition-all active:scale-95 cursor-pointer flex items-center justify-center"
+                  className="p-1.5 rounded-xl border border-[#2D3148] hover:border-orange-500/40 bg-[#1A1D27]/50 text-gray-400 hover:text-white transition-all active:scale-95 cursor-pointer flex items-center justify-center"
                 >
                   {theme === "dark" ? (
                     <span className="text-[13px] leading-none select-none">☀️</span>
@@ -140,7 +150,7 @@ export default function Navbar() {
                 ) : (
                   <button
                     onClick={() => openAuthModal("login")}
-                    className="px-4 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white font-bold text-xs transition-all shadow-sm shadow-orange-500/10 active:scale-[0.98] cursor-pointer"
+                    className="px-4 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white font-semibold text-xs transition-all shadow-xs active:scale-[0.98] cursor-pointer"
                   >
                     Sign In
                   </button>
@@ -214,6 +224,13 @@ export default function Navbar() {
                 className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
               >
                 Search & Filter
+              </Link>
+              <Link
+                href="/about"
+                onClick={() => setMenuOpen(false)}
+                className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              >
+                About
               </Link>
               {activeStateName && activeStateCode && (
                 <Link

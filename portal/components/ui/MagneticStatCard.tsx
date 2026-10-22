@@ -34,8 +34,8 @@ export default function MagneticStatCard({ children }: MagneticStatCardProps) {
 
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
-    const tiltX = ((y - centerY) / centerY) * -2.5; // max 2.5 degrees tilt
-    const tiltY = ((x - centerX) / centerX) * 2.5; // max 2.5 degrees tilt
+    const tiltX = ((y - centerY) / centerY) * -1.5; // max 1.5 degrees subtle tilt
+    const tiltY = ((x - centerX) / centerX) * 1.5; // max 1.5 degrees subtle tilt
     setTilt({ x: tiltX, y: tiltY });
   };
 
@@ -53,7 +53,7 @@ export default function MagneticStatCard({ children }: MagneticStatCardProps) {
   // Render cursor radial glow styling
   const glowStyle: React.CSSProperties = isHovered
     ? {
-        background: `radial-gradient(circle at ${mousePos.x}px ${mousePos.y}px, rgba(255, 107, 53, 0.08) 0%, transparent 50%)`,
+        background: `radial-gradient(circle at ${mousePos.x}px ${mousePos.y}px, rgba(255, 107, 53, 0.04) 0%, transparent 60%)`,
       }
     : {
         background: "transparent",
@@ -73,7 +73,7 @@ export default function MagneticStatCard({ children }: MagneticStatCardProps) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={transformStyle}
-      className="relative flex flex-col justify-between p-5 rounded-2xl bg-[#1A1D27]/80 border border-[#2D3148] shadow-sm hover:border-[#FF6B35]/40 hover:shadow-[0_0_20px_rgba(255,107,53,0.05)] transition-all group text-left min-h-[110px] overflow-hidden"
+      className="relative flex flex-col justify-between p-5 rounded-2xl bg-[#1A1D27]/90 border border-[#2D3148] shadow-sm hover:border-orange-500/35 hover:shadow-[0_4px_20px_rgba(0,0,0,0.25)] transition-all group text-left min-h-[110px] overflow-hidden"
     >
       {/* Internal cursor radial glow overlay */}
       <div 

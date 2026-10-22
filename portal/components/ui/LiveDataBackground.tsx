@@ -185,7 +185,7 @@ export default function LiveDataBackground() {
 
         const scanGradient = ctx.createLinearGradient(scanX - 150, 0, scanX + 150, 0);
         scanGradient.addColorStop(0, "rgba(255, 107, 53, 0)");
-        scanGradient.addColorStop(0.5, isDark ? "rgba(255, 107, 53, 0.045)" : "rgba(255, 107, 53, 0.02)");
+        scanGradient.addColorStop(0.5, isDark ? "rgba(255, 107, 53, 0.02)" : "rgba(255, 107, 53, 0.012)");
         scanGradient.addColorStop(1, "rgba(255, 107, 53, 0)");
         ctx.fillStyle = scanGradient;
         ctx.fillRect(0, 0, width, height);
@@ -213,8 +213,8 @@ export default function LiveDataBackground() {
               ctx.beginPath();
               ctx.moveTo(dot.x, dot.y);
               ctx.lineTo(neighbor.x, neighbor.y);
-              ctx.strokeStyle = `rgba(255, 107, 53, ${waveIntensity * (isDark ? 0.22 : 0.35)})`;
-              ctx.lineWidth = 0.6;
+              ctx.strokeStyle = `rgba(255, 107, 53, ${waveIntensity * (isDark ? 0.12 : 0.16)})`;
+              ctx.lineWidth = 0.5;
               ctx.stroke();
             }
           });
@@ -229,13 +229,13 @@ export default function LiveDataBackground() {
         // rippleIntensity peaks at 1 when the wave shell crosses over this dot
         const rippleIntensity = Math.max(0, 1 - distFromWave / 30);
         
-        // Baseline breathing glow for all dots (higher baseline contrast needed for light background)
+        // Baseline breathing glow for all dots
         const baselineAlpha = isDark
-          ? (0.13 + Math.sin(pulseTimer * 2.5 + dot.y * 0.02) * 0.04)
-          : (0.16 + Math.sin(pulseTimer * 2.5 + dot.y * 0.02) * 0.03);
+          ? (0.08 + Math.sin(pulseTimer * 1.8 + dot.y * 0.02) * 0.025)
+          : (0.11 + Math.sin(pulseTimer * 1.8 + dot.y * 0.02) * 0.02);
         
-        const dotSize = 1.0 + rippleIntensity * 1.5;
-        const alpha = baselineAlpha + rippleIntensity * (isDark ? 0.35 : 0.4);
+        const dotSize = 0.95 + rippleIntensity * 0.8;
+        const alpha = baselineAlpha + rippleIntensity * (isDark ? 0.22 : 0.26);
 
         ctx.beginPath();
         ctx.arc(dot.x, dot.y, dotSize, 0, Math.PI * 2);
@@ -248,8 +248,8 @@ export default function LiveDataBackground() {
         ctx.beginPath();
         ctx.arc(glowTargetX, glowTargetY, waveRadius, 0, Math.PI * 2);
         const waveFade = Math.max(0, 1 - waveRadius / maxRippleRadius);
-        ctx.strokeStyle = `rgba(255, 107, 53, ${waveFade * (isDark ? 0.32 : 0.38)})`;
-        ctx.lineWidth = 1.0;
+        ctx.strokeStyle = `rgba(255, 107, 53, ${waveFade * (isDark ? 0.14 : 0.18)})`;
+        ctx.lineWidth = 0.75;
         ctx.stroke();
       }
 
@@ -258,7 +258,7 @@ export default function LiveDataBackground() {
       // Mouse Ambient tracking glow overlay
       if (!isMobile && !isReducedMotion && mouseX && mouseY) {
         const mouseGlow = ctx.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, 180);
-        mouseGlow.addColorStop(0, isDark ? "rgba(255, 107, 53, 0.065)" : "rgba(255, 107, 53, 0.05)");
+        mouseGlow.addColorStop(0, isDark ? "rgba(255, 107, 53, 0.035)" : "rgba(255, 107, 53, 0.025)");
         mouseGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
         ctx.fillStyle = mouseGlow;
         ctx.beginPath();
