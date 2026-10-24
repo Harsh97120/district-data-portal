@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import IndiaMapWrapper from "@/components/map/IndiaMapWrapper";
+import MPIChoroplethLegend from "@/components/map/MPIChoroplethLegend";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 
 /** Refresh / circular-arrows icon */
@@ -90,6 +91,11 @@ export default function MapNavigationPage() {
           <RefreshIcon spinning={spinning} />
           Reset view
         </button>
+
+        {/* MPI Range Indicator / Legend — bottom left overlay */}
+        <div className="absolute bottom-6 left-6 z-20">
+          <MPIChoroplethLegend />
+        </div>
 
         {/* Helper hint bottom right */}
         <div className="absolute bottom-3 right-3 z-20 px-3 py-1.5 rounded-xl bg-[#1A1D27]/90 backdrop-blur border border-[#2D3148] text-[11px] text-gray-300 pointer-events-none shadow-md hidden sm:block">

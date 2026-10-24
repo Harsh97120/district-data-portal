@@ -7,7 +7,7 @@ interface MetricCardProps {
 }
 
 function formatValue(field: string, value: number | null | undefined): string {
-  if (value === null || value === undefined) return "—";
+  if (value === null || value === undefined) return "NA";
   if (field === "literacy_rate" || field === "child_population_pct") {
     return value.toFixed(1) + "%";
   }
@@ -41,10 +41,10 @@ export default function MetricCard({ field, value, highlighted = false }: Metric
       )}
 
       <p className="text-xs text-gray-500 mb-1 leading-tight">{meta.label}</p>
-      <p className={`text-2xl font-bold tabular-nums ${hasValue ? (highlighted ? "text-orange-400" : "text-white") : "text-gray-600"}`}>
+      <p className={`text-2xl font-bold tabular-nums ${hasValue ? (highlighted ? "text-orange-400" : "text-white") : "text-gray-500"}`}>
         {formatted}
       </p>
-      {meta.unit && (
+      {meta.unit && hasValue && (
         <p className="text-xs text-gray-500 mt-0.5">{meta.unit}</p>
       )}
     </div>

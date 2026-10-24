@@ -114,16 +114,6 @@ const INDICATOR_ALIASES: Record<string, string[]> = {
     "school attendance", "children in school", "kids going to school",
     "school going", "enrolment", "enrollment"
   ],
-  dropout_rate: [
-    "dropout", "drop out", "school dropout", "leaving school", "dropout rate"
-  ],
-  learning_proficiency: [
-    "learning proficiency", "aser", "parakh", "learning levels", "reading math",
-    "proficiency"
-  ],
-  retention_rate: [
-    "retention", "retention rate", "school retention", "staying in school"
-  ],
   electricity_access: [
     "electricity", "power", "lights", "power access", "electrified", "power supply"
   ],

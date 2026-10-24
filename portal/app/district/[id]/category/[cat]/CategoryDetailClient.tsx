@@ -397,100 +397,8 @@ export default function CategoryDetailClient({
         </div>
       </div>
 
-      {/* ── Score Hero: District vs State ──────────────────────────────────── */}
-      <div
-        className="rounded-2xl border border-[#2D3148] p-6 sm:p-8"
-        style={{
-          background: `linear-gradient(135deg, ${config.gradientFrom} 0%, #1A1D27 60%)`,
-        }}
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-center">
-          {/* District Score */}
-          <div className="text-center">
-            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-2">
-              {activeDistrict.district_name}
-            </p>
-            <p
-              className="text-6xl font-extrabold tabular-nums leading-none"
-              style={{ color: scoreColor }}
-            >
-              {districtCatScore}
-            </p>
-            <p className="text-[10px] text-gray-500 mt-1.5 font-semibold">Score / 100</p>
-            <div className="mt-4 mx-6 h-2 rounded-full bg-[#2D3148] overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{ width: `${districtCatScore}%`, backgroundColor: scoreColor }}
-              />
-            </div>
-          </div>
 
-          {/* Delta */}
-          <div className="flex flex-col items-center gap-3">
-            <div
-              className={`px-5 py-3 rounded-2xl border text-center ${
-                scoreDiff > 0
-                  ? "bg-[#66BB6A]/10 border-[#66BB6A]/30"
-                  : scoreDiff < 0
-                  ? "bg-[#EF5350]/10 border-[#EF5350]/30"
-                  : "bg-[#2D3148]/40 border-[#2D3148]"
-              }`}
-            >
-              <p
-                className="text-2xl font-extrabold tabular-nums"
-                style={{
-                  color: scoreDiff > 0 ? "#66BB6A" : scoreDiff < 0 ? "#EF5350" : "#9CA3AF",
-                }}
-              >
-                {scoreDiff > 0 ? "+" : ""}
-                {scoreDiff}
-              </p>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">
-                Points vs State Avg
-              </p>
-            </div>
-            <p className="text-xs text-gray-500 text-center leading-relaxed">
-              {scoreDiff > 0
-                ? `${activeDistrict.district_name} outperforms the state benchmark`
-                : scoreDiff < 0
-                ? `${activeDistrict.district_name} lags behind the state benchmark`
-                : "Matches the state benchmark exactly"}
-            </p>
-            <div className="flex items-center gap-4 text-[10px]">
-              <span className="flex items-center gap-1.5">
-                <span
-                  className="w-2.5 h-2.5 rounded-full inline-block"
-                  style={{ backgroundColor: scoreColor }}
-                />
-                <span className="text-gray-400">{activeDistrict.district_name}</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-gray-500 inline-block" />
-                <span className="text-gray-400">State Benchmark</span>
-              </span>
-            </div>
-          </div>
-
-          {/* State Benchmark Score */}
-          <div className="text-center">
-            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-2">
-              {stateName} Benchmark
-            </p>
-            <p className="text-6xl font-extrabold tabular-nums text-gray-400 leading-none">
-              {stateCatScore}
-            </p>
-            <p className="text-[10px] text-gray-500 mt-1.5 font-semibold">Score / 100</p>
-            <div className="mt-4 mx-6 h-2 rounded-full bg-[#2D3148] overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gray-500 transition-all duration-700"
-                style={{ width: `${stateCatScore}%` }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Indicator Overview (Dropdown + Single-Indicator Dynamic Comparison) ── */}
+      {/* ── Indicator Overview (Dropdown + District Survey Trend) ── */}
       <div className="bg-[#1A1D27] border border-[#2D3148] rounded-2xl p-6 md:p-8 space-y-6">
         {/* Section Header with Indicator Dropdown */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#2D3148]">
@@ -502,7 +410,7 @@ export default function CategoryDetailClient({
               </span>
             </div>
             <p className="text-xs sm:text-sm text-gray-400 mt-1">
-              Select an indicator to inspect how {activeDistrict.district_name} compares with {stateName} benchmarks.
+              Select an indicator to inspect survey figures and progress for {activeDistrict.district_name}.
             </p>
           </div>
 
@@ -559,14 +467,14 @@ export default function CategoryDetailClient({
           </div>
         </div>
 
-        {/* Unified District vs State Benchmark Comparison (Full Width) */}
+        {/* District Survey Trend (Full Width) */}
         <div className="w-full bg-[#0F1117]/70 border border-[#2D3148] rounded-2xl p-5 sm:p-6 space-y-4">
           {/* Chart Header & Metadata */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2D3148]/60 pb-4">
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-xs sm:text-sm font-extrabold text-white uppercase tracking-wider">
-                  District vs State Benchmark
+                  District Survey Performance
                 </h3>
                 <span className="text-[10px] text-gray-400 font-semibold px-2 py-0.5 rounded bg-[#1A1D27] border border-[#2D3148]">
                   Unit: {unit}
@@ -574,62 +482,38 @@ export default function CategoryDetailClient({
               </div>
               <div className="flex flex-wrap items-center gap-2 mt-1.5">
                 <p className="text-xs text-gray-400 font-medium">
-                  {activeDistrict.district_name} vs {stateName} &bull; {selectedMeta?.label || activeField}
+                  {activeDistrict.district_name} &bull; {selectedMeta?.label || activeField}
                 </p>
                 {districtChange !== null && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#1A1D27] border border-[#2D3148] text-gray-300">
-                    <span className="text-orange-400">{activeDistrict.district_name}</span>
+                    <span className="text-orange-400">Change:</span>
                     <span className={districtChange >= 0 ? "text-emerald-400" : "text-rose-400"}>
                       {districtChange > 0 ? "+" : ""}{districtChange} pp
                     </span>
                   </span>
                 )}
-                {stateChange !== null && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#1A1D27] border border-[#2D3148] text-gray-300">
-                    <span className="text-sky-400">{stateName} Avg</span>
-                    <span className={stateChange >= 0 ? "text-emerald-400" : "text-rose-400"}>
-                      {stateChange > 0 ? "+" : ""}{stateChange} pp
-                    </span>
-                  </span>
-                )}
               </div>
-            </div>
-
-            {/* Grouping Toggle */}
-            <div className="flex items-center gap-1 bg-[#1A1D27] border border-[#2D3148] p-1 rounded-lg self-start sm:self-auto">
-              <button
-                type="button"
-                onClick={() => setChartGrouping("period")}
-                className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-all cursor-pointer ${
-                  chartGrouping === "period"
-                    ? "bg-orange-500/20 text-orange-400 border border-orange-500/40 shadow-sm"
-                    : "text-gray-400 hover:text-white border border-transparent"
-                }`}
-              >
-                By Survey Period
-              </button>
-              <button
-                type="button"
-                onClick={() => setChartGrouping("entity")}
-                className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-all cursor-pointer ${
-                  chartGrouping === "entity"
-                    ? "bg-orange-500/20 text-orange-400 border border-orange-500/40 shadow-sm"
-                    : "text-gray-400 hover:text-white border border-transparent"
-                }`}
-              >
-                By District / State
-              </button>
             </div>
           </div>
 
-          {/* Grouped Bar Chart Area */}
+          {/* Bar Chart Area */}
           <div className="h-[320px] sm:h-[360px] w-full pt-2">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={chartGrouping === "period" ? periodChartData : entityChartData}
+                data={[
+                  {
+                    category: "NFHS-5 (2019–21)",
+                    value: districtVal5 ?? 0,
+                    formatted: districtVal5 !== null ? `${districtVal5.toFixed(1)}${unit}` : "—",
+                  },
+                  {
+                    category: "NFHS-6 (2023–24)",
+                    value: districtVal6 ?? 0,
+                    formatted: districtVal6 !== null ? `${districtVal6.toFixed(1)}${unit}` : "—",
+                  },
+                ]}
                 margin={{ top: 25, right: 24, left: 0, bottom: 10 }}
-                barCategoryGap="28%"
-                barGap={8}
+                barCategoryGap="40%"
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -652,78 +536,25 @@ export default function CategoryDetailClient({
                   tickFormatter={(v) => `${v}${unit}`}
                 />
                 <Tooltip content={<ConciseBenchmarkTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
-                {chartGrouping === "period" ? (
-                  <>
-                    <Bar
-                      dataKey="district"
-                      name={activeDistrict.district_name}
-                      fill="#F97316"
-                      radius={[6, 6, 0, 0]}
-                      maxBarSize={56}
-                      label={renderBarTopLabel}
-                    />
-                    <Bar
-                      dataKey="stateAvg"
-                      name={`${stateName} Average`}
-                      fill="#38BDF8"
-                      radius={[6, 6, 0, 0]}
-                      maxBarSize={56}
-                      label={renderBarTopLabel}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <Bar
-                      dataKey="nfhs5"
-                      name="NFHS-5 (2019–21)"
-                      fill="#F97316"
-                      radius={[6, 6, 0, 0]}
-                      maxBarSize={56}
-                      label={renderBarTopLabel}
-                    />
-                    <Bar
-                      dataKey="nfhs6"
-                      name="NFHS-6 (2023–24)"
-                      fill="#38BDF8"
-                      radius={[6, 6, 0, 0]}
-                      maxBarSize={56}
-                      label={renderBarTopLabel}
-                    />
-                  </>
-                )}
+                <Bar
+                  dataKey="value"
+                  name={activeDistrict.district_name}
+                  fill="#F97316"
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={64}
+                  label={renderBarTopLabel}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Compact Legend & Dataset Indicator */}
+          {/* Legend */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-xs border-t border-[#2D3148]/60 pt-3">
-            {chartGrouping === "period" ? (
-              <>
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded bg-[#F97316]" />
-                  <span className="text-white font-semibold">{activeDistrict.district_name}</span>
-                  <span className="text-gray-500 text-[11px]">(Selected District)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded bg-[#38BDF8]" />
-                  <span className="text-white font-semibold">{stateName} Average</span>
-                  <span className="text-gray-500 text-[11px]">(State Benchmark)</span>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded bg-[#F97316]" />
-                  <span className="text-white font-semibold">NFHS-5</span>
-                  <span className="text-gray-400 text-[11px]">(2019–21 Baseline)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded bg-[#38BDF8]" />
-                  <span className="text-white font-semibold">NFHS-6</span>
-                  <span className="text-gray-400 text-[11px]">(2023–24 Latest)</span>
-                </div>
-              </>
-            )}
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded bg-[#F97316]" />
+              <span className="text-white font-semibold">{activeDistrict.district_name}</span>
+              <span className="text-gray-400 text-[11px]">(Survey Rounds)</span>
+            </div>
           </div>
         </div>
       </div>

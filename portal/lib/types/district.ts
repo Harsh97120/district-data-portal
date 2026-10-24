@@ -40,9 +40,9 @@ export interface DistrictMetrics {
 
   // Education
   school_attendance_6_17: number | null;
-  dropout_rate: number | null;
-  learning_proficiency: number | null;
-  retention_rate: number | null;
+  dropout_rate?: number | null;
+  learning_proficiency?: number | null;
+  retention_rate?: number | null;
 
   // Basic Services
   electricity_access: number | null;

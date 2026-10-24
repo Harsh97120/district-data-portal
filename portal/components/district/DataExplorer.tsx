@@ -493,11 +493,10 @@ export default function DataExplorer({ district, allDistricts }: DataExplorerPro
                             e.preventDefault();
                             handleSelectIndicator(item.field);
                           }}
-                          className={`px-3.5 py-2.5 cursor-pointer transition-colors flex items-center justify-between gap-3 ${
-                            isHighlighted
-                              ? "bg-orange-500/15 border-l-2 border-l-orange-500"
-                              : "hover:bg-[#242838]/60"
-                          }`}
+                          className={`px-3.5 py-2.5 cursor-pointer transition-colors flex items-center justify-between gap-3 ${isHighlighted
+                            ? "bg-orange-500/15 border-l-2 border-l-orange-500"
+                            : "hover:bg-[#242838]/60"
+                            }`}
                         >
                           <div className="min-w-0 flex-1">
                             <p className="text-xs font-semibold text-white truncate">
@@ -562,7 +561,7 @@ export default function DataExplorer({ district, allDistricts }: DataExplorerPro
                       <span className="text-[10px] text-gray-400 font-normal ml-0.5">{activeMeta.unit}</span>
                     </span>
                   ) : (
-                    <span className="text-gray-600">—</span>
+                    <span className="text-gray-400 font-medium">NA</span>
                   )}
                 </td>
                 <td className="px-4 py-3.5 text-right font-medium text-gray-300 whitespace-nowrap">
@@ -572,20 +571,19 @@ export default function DataExplorer({ district, allDistricts }: DataExplorerPro
                       <span className="text-[10px] text-gray-500 ml-0.5">{activeMeta.unit}</span>
                     </span>
                   ) : (
-                    <span className="text-gray-600">—</span>
+                    <span className="text-gray-400 font-medium">NA</span>
                   )}
                 </td>
                 <td className="px-4 py-3.5 text-right font-semibold whitespace-nowrap">
                   {gap !== null ? (
                     <div className="flex flex-col items-end">
                       <span
-                        className={`tabular-nums ${
-                          isZero
-                            ? "text-gray-400"
-                            : isBetter
+                        className={`tabular-nums ${isZero
+                          ? "text-gray-400"
+                          : isBetter
                             ? "text-[#66BB6A]"
                             : "text-[#EF5350]"
-                        }`}
+                          }`}
                       >
                         {gap > 0 ? "+" : ""}
                         {gap.toFixed(1)}
@@ -594,19 +592,18 @@ export default function DataExplorer({ district, allDistricts }: DataExplorerPro
                         </span>
                       </span>
                       <span
-                        className={`text-[9px] font-medium uppercase tracking-wider ${
-                          isZero
-                            ? "text-gray-500"
-                            : isBetter
+                        className={`text-[9px] font-medium uppercase tracking-wider ${isZero
+                          ? "text-gray-500"
+                          : isBetter
                             ? "text-[#66BB6A]/80"
                             : "text-[#EF5350]/80"
-                        }`}
+                          }`}
                       >
                         {isZero ? "Par with state" : isBetter ? "Above benchmark" : "Below benchmark"}
                       </span>
                     </div>
                   ) : (
-                    <span className="text-gray-600">—</span>
+                    <span className="text-gray-400 font-medium">NA</span>
                   )}
                 </td>
                 <td className="px-4 py-3.5 text-center text-[10px] text-gray-500 whitespace-nowrap">

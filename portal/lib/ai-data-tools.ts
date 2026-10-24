@@ -171,9 +171,6 @@ export function resolveIndicatorFromQuery(query: string): ResolvedIndicator | nu
     { keywords: ["female literacy", "women literacy", "literacy rate", "literacy", "literate", "can read and write"], field: "literacy_rate" },
     { keywords: ["women schooling", "female schooling", "girls schooling", "girls education", "women education", "10 years of schooling"], field: "women_schooling_10_years" },
     { keywords: ["school attendance", "children in school", "kids going to school", "school going"], field: "school_attendance_6_17" },
-    { keywords: ["dropout", "drop out", "school dropout"], field: "dropout_rate" },
-    { keywords: ["learning proficiency", "parakh", "aser", "learning level"], field: "learning_proficiency" },
-    { keywords: ["retention rate", "school retention"], field: "retention_rate" },
 
     // Women & Gender
     { keywords: ["early marriage", "child marriage", "married before 18", "underage marriage"], field: "early_marriage" },

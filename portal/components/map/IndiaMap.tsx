@@ -8,32 +8,20 @@ import { fetchGeoJSON, getStateName } from "@/lib/geo-utils";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useTheme } from "@/lib/ThemeContext";
 
+import { getStateMpi, getMpiChoroplethColor } from "@/lib/mpi-state-data";
+
 // India map center and zoom
 const INDIA_CENTER: [number, number] = [22.5, 82.5];
 const INDIA_ZOOM = 4.8;
 
-// Choropleth palette (same warm scale used for district maps)
-const CHOROPLETH_COLORS = CHOROPLETH_STEPS.map((s) => s.color);
-
-/** Deterministic hash of a string → 0..N-1 */
-function nameHash(str: string, n: number): number {
-  let h = 0;
-  for (const c of str) h = ((h * 31) + c.charCodeAt(0)) >>> 0;
-  return h % n;
-}
-
-/** Pick a choropleth fill colour for a state by name */
-function getStateChoroplethColor(stateName: string): string {
-  return CHOROPLETH_COLORS[nameHash(stateName.toLowerCase(), CHOROPLETH_COLORS.length)];
-}
-
 function buildStateStyle(stateName: string, hovered: boolean, theme: string = "dark"): Record<string, unknown> {
-  const fillColor = getStateChoroplethColor(stateName);
+  const mpi = getStateMpi(stateName);
+  const fillColor = getMpiChoroplethColor(mpi);
   return {
     fillColor,
-    fillOpacity: hovered ? 0.95 : 0.65,
+    fillOpacity: hovered ? 0.95 : 0.75,
     color: hovered ? (theme === "dark" ? "#FFFFFF" : "#111827") : (theme === "dark" ? "rgba(255,255,255,0.3)" : "rgba(17,24,39,0.15)"),
-    weight: hovered ? 2 : 0.8,
+    weight: hovered ? 2.2 : 0.8,
     opacity: 1,
   };
 }
@@ -51,7 +39,7 @@ export default function IndiaMap({ onMapReady }: IndiaMapProps) {
 
   const { theme } = useTheme();
   const [loading, setLoading]           = useState(true);
-  const [hoveredState, setHoveredState] = useState<string | null>(null);
+  const [hoveredState, setHoveredState] = useState<{ name: string; mpi: number | null } | null>(null);
   const [error, setError]               = useState<string | null>(null);
 
   /** Fly back to the full-India view */
@@ -113,10 +101,11 @@ export default function IndiaMap({ onMapReady }: IndiaMapProps) {
         onEachFeature: (feature, featureLayer) => {
           const name = getStateName(feature.properties as StateGeoProps);
           const stateInfo = STATE_BY_GEONAME[name.toLowerCase()];
+          const mpi = getStateMpi(name);
 
           featureLayer.on({
             mouseover: (e) => {
-              setHoveredState(name);
+              setHoveredState({ name, mpi });
               const l = e.target;
               l.setStyle(buildStateStyle(name, true, theme));
               l.bringToFront();
@@ -135,8 +124,12 @@ export default function IndiaMap({ onMapReady }: IndiaMapProps) {
           const tooltipBorder = theme === "dark" ? "#2D3148" : "#E5E7EB";
 
           featureLayer.bindTooltip(
-            `<div style="font-family:Inter,sans-serif;padding:4px 8px;font-size:13px;font-weight:600;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:6px">
-              ${name}${stateInfo?.hasData ? '<span style="color:#FF6B35;margin-left:6px;font-size:10px">● Data</span>' : ""}
+            `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5)">
+              <div style="font-size:13px;font-weight:700;color:${textColor}">${name}</div>
+              <div style="font-size:11px;font-weight:600;color:#FFA726;margin-top:2px">
+                MPI Headcount: <b>${mpi !== null ? `${mpi.toFixed(2)}%` : "N/A"}</b>
+              </div>
+              <div style="font-size:10px;color:#9CA3AF;margin-top:3px">Click to explore districts →</div>
             </div>`,
             { sticky: true, opacity: 1, className: "leaflet-tooltip-custom" }
           );
@@ -199,14 +192,18 @@ export default function IndiaMap({ onMapReady }: IndiaMapProps) {
       featureLayer.setStyle(buildStateStyle(name, false, theme));
 
       // Update tooltips dynamically
-      const stateInfo = STATE_BY_GEONAME[name.toLowerCase()];
       const textColor = theme === "dark" ? "#F0F0F0" : "#111827";
       const tooltipBg = theme === "dark" ? "#1A1D27" : "#FFFFFF";
       const tooltipBorder = theme === "dark" ? "#2D3148" : "#E5E7EB";
+      const mpi = getStateMpi(name);
 
       featureLayer.setTooltipContent(
-        `<div style="font-family:Inter,sans-serif;padding:4px 8px;font-size:13px;font-weight:600;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:6px">
-          ${name}${stateInfo?.hasData ? '<span style="color:#FF6B35;margin-left:6px;font-size:10px">● Data</span>' : ""}
+        `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5)">
+          <div style="font-size:13px;font-weight:700;color:${textColor}">${name}</div>
+          <div style="font-size:11px;font-weight:600;color:#FFA726;margin-top:2px">
+            MPI Headcount: <b>${mpi !== null ? `${mpi.toFixed(2)}%` : "N/A"}</b>
+          </div>
+          <div style="font-size:10px;color:#9CA3AF;margin-top:3px">Click to explore districts →</div>
         </div>`
       );
     });
@@ -229,9 +226,13 @@ export default function IndiaMap({ onMapReady }: IndiaMapProps) {
 
       {/* Hovered state action chip */}
       {hoveredState && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-3.5 py-1.5 bg-[#1A1D27]/90 backdrop-blur border border-[#2D3148] rounded-full text-xs text-orange-400 font-semibold pointer-events-none flex items-center gap-1.5 shadow-md animate-fade-in">
-          <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-          <span>Click to explore</span>
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 bg-[#1A1D27]/95 backdrop-blur border border-orange-500/40 rounded-full text-xs text-orange-400 font-semibold pointer-events-none flex items-center gap-2 shadow-xl animate-fade-in">
+          <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+          <span className="text-white font-bold">{hoveredState.name}</span>
+          <span className="text-orange-300 font-mono">
+            {hoveredState.mpi !== null ? `${hoveredState.mpi.toFixed(1)}% MPI` : ""}
+          </span>
+          <span className="text-gray-400 font-normal">· Click to explore</span>
         </div>
       )}
 

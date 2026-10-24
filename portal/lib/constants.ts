@@ -75,9 +75,6 @@ export const METRIC_LABELS: Record<string, { label: string; unit: string; descri
 
   // Education
   school_attendance_6_17: { label: "School Attendance",       unit: "%",            description: "School attendance for children aged 6-17 years", direction: "positive", weight: 2.0 },
-  dropout_rate:         { label: "School Dropout Rate",     unit: "%",            description: "Derived dropout rate for school-going children", direction: "negative", weight: 1.8 },
-  learning_proficiency: { label: "Learning Proficiency",    unit: "%",            description: "ASER/PARAKH-aligned basic learning levels proxy", direction: "positive", weight: 2.2 },
-  retention_rate:       { label: "School Retention Rate",   unit: "%",            description: "Derived school retention rate from primary to secondary", direction: "positive", weight: 1.5 },
 
   // Basic Services
   electricity_access:   { label: "Electricity Access",      unit: "%",            description: "Households with electricity", direction: "positive", weight: 1.5 },
@@ -107,7 +104,7 @@ export const INDICATOR_CATEGORIES = {
   },
   education: {
     label: "Education",
-    indicators: ["literacy_rate", "school_attendance_6_17", "dropout_rate", "learning_proficiency", "retention_rate"],
+    indicators: ["literacy_rate", "school_attendance_6_17"],
   },
   basic_services: {
     label: "Basic Services & Living Conditions",

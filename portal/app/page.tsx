@@ -27,13 +27,13 @@ export default async function HomePage() {
       <section className="relative px-4 sm:px-6 lg:px-8 pt-20 pb-20 border-b border-[#2D3148] overflow-hidden flex flex-col items-center justify-center">
         {/* Canvas Live Grid Background */}
         <LiveDataBackground />
-        
+
         {/* Fallback CSS Grid pattern */}
         <div className="absolute inset-0 grid-bg opacity-40 pointer-events-none" />
-        
+
         {/* Glow Accent */}
         <div className="glow-accent" />
-        
+
         <div className="max-w-4xl mx-auto text-center space-y-6 relative z-10">
           {/* Badge */}
           <div className="animate-premium-fade-up delay-0 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-medium tracking-wide mb-2">
@@ -65,7 +65,7 @@ export default async function HomePage() {
               </div>
               <div>
                 <span className="text-2xl font-bold text-white tracking-tight">
-                  {stateCount !== null ? <AnimatedCounter target={stateCount} /> : "Not available"}
+                  28 States / 8 Union Territories
                 </span>
                 <span className="text-gray-400 text-[11px] font-medium block mt-1 tracking-wider uppercase">
                   States and Union Territories
@@ -83,7 +83,7 @@ export default async function HomePage() {
               </div>
               <div>
                 <span className="text-2xl font-bold text-white tracking-tight">
-                  {districtCount !== null ? <AnimatedCounter target={districtCount} /> : "Not available"}
+                  {districtCount !== null ? <AnimatedCounter target={districtCount} /> : "NA"}
                 </span>
                 <span className="text-gray-400 text-[11px] font-medium block mt-1 tracking-wider uppercase">
                   Districts in the dataset
@@ -102,7 +102,7 @@ export default async function HomePage() {
               </div>
               <div>
                 <span className="text-2xl font-bold text-white tracking-tight">
-                  {indicatorCount !== null ? <AnimatedCounter target={indicatorCount} /> : "Not available"}
+                  {indicatorCount !== null ? <AnimatedCounter target={indicatorCount} /> : "NA"}
                 </span>
                 <span className="text-gray-400 text-[11px] font-medium block mt-1 tracking-wider uppercase">
                   NFHS-5 indicators

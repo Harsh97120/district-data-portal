@@ -381,22 +381,20 @@ export default function DistrictComparison({
             <button
               type="button"
               onClick={() => setActivePeriod("NFHS-6")}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${
-                activePeriod === "NFHS-6"
-                  ? "bg-[#1A1D27] text-orange-400 border border-[#2D3148] shadow-sm"
-                  : "text-gray-400 hover:text-white border border-transparent"
-              }`}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${activePeriod === "NFHS-6"
+                ? "bg-[#1A1D27] text-orange-400 border border-[#2D3148] shadow-sm"
+                : "text-gray-400 hover:text-white border border-transparent"
+                }`}
             >
               NFHS-6 (2023–24)
             </button>
             <button
               type="button"
               onClick={() => setActivePeriod("NFHS-5")}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${
-                activePeriod === "NFHS-5"
-                  ? "bg-[#1A1D27] text-orange-400 border border-[#2D3148] shadow-sm"
-                  : "text-gray-400 hover:text-white border border-transparent"
-              }`}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${activePeriod === "NFHS-5"
+                ? "bg-[#1A1D27] text-orange-400 border border-[#2D3148] shadow-sm"
+                : "text-gray-400 hover:text-white border border-transparent"
+                }`}
             >
               NFHS-5 (2019–21)
             </button>
@@ -413,9 +411,6 @@ export default function DistrictComparison({
             <div className="flex items-center justify-between gap-2 mb-2">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-orange-400">
                 Current District
-              </span>
-              <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/25">
-                Active Baseline
               </span>
             </div>
             <h4 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase">
@@ -538,9 +533,8 @@ export default function DistrictComparison({
                           key={suggestion.item.id}
                           onClick={() => handleSelectDistrict(suggestion.item)}
                           onMouseEnter={() => setHighlightedIndex(index)}
-                          className={`px-4 py-2.5 cursor-pointer transition-colors flex items-center justify-between ${
-                            isHighlighted ? "bg-sky-500/15 text-white" : "hover:bg-[#242838] text-gray-200"
-                          }`}
+                          className={`px-4 py-2.5 cursor-pointer transition-colors flex items-center justify-between ${isHighlighted ? "bg-sky-500/15 text-white" : "hover:bg-[#242838] text-gray-200"
+                            }`}
                         >
                           <div>
                             <p className="font-bold text-xs sm:text-sm">{suggestion.item.name}</p>
@@ -549,11 +543,10 @@ export default function DistrictComparison({
                             </p>
                           </div>
                           <span
-                            className={`text-[9px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${
-                              isSameState
-                                ? "bg-[#0F1117] text-gray-400 border-[#2D3148]"
-                                : "bg-sky-500/10 text-sky-400 border-sky-500/25"
-                            }`}
+                            className={`text-[9px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${isSameState
+                              ? "bg-[#0F1117] text-gray-400 border-[#2D3148]"
+                              : "bg-sky-500/10 text-sky-400 border-sky-500/25"
+                              }`}
                           >
                             {isSameState ? "Same State" : suggestion.item.state_code}
                           </span>
@@ -676,9 +669,8 @@ export default function DistrictComparison({
               <div
                 onMouseEnter={() => setHoveredDistrict("current")}
                 onMouseLeave={() => setHoveredDistrict(null)}
-                className={`relative transition-opacity duration-200 cursor-default ${
-                  hoveredDistrict === "comparison" ? "opacity-35" : "opacity-100"
-                }`}
+                className={`relative transition-opacity duration-200 cursor-default ${hoveredDistrict === "comparison" ? "opacity-35" : "opacity-100"
+                  }`}
               >
                 {/* Floating Tooltip for Current District */}
                 {hoveredDistrict === "current" && (
@@ -776,9 +768,8 @@ export default function DistrictComparison({
               <div
                 onMouseEnter={() => setHoveredDistrict("comparison")}
                 onMouseLeave={() => setHoveredDistrict(null)}
-                className={`relative transition-opacity duration-200 cursor-default ${
-                  hoveredDistrict === "current" ? "opacity-35" : "opacity-100"
-                }`}
+                className={`relative transition-opacity duration-200 cursor-default ${hoveredDistrict === "current" ? "opacity-35" : "opacity-100"
+                  }`}
               >
                 {/* Floating Tooltip for Comparison District */}
                 {hoveredDistrict === "comparison" && (

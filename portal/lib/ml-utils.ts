@@ -30,6 +30,16 @@ export function getMetricsForYear(district: DistrictMetrics, year: "NFHS-5" | "N
 
   const fields = Object.keys(district) as (keyof DistrictMetrics)[];
   for (const field of fields) {
+    if (
+      field === "household_size_avg" ||
+      field === "households_surveyed" ||
+      field === "women_interviewed" ||
+      field === "men_interviewed"
+    ) {
+      // In NFHS-6, sample size demographics and average household size are not available
+      (enriched as any)[field] = null;
+      continue;
+    }
     const val = district[field];
     if (typeof val === "number" && field !== "sex_ratio") {
       const rand = seededRandom(dId + String(field));
@@ -54,6 +64,12 @@ export function getMetricsForYear(district: DistrictMetrics, year: "NFHS-5" | "N
       enriched.sex_ratio = Math.round(val + delta);
     }
   }
+
+  // Ensure household size and respondent counts are explicitly null for NFHS-6
+  enriched.household_size_avg = null;
+  enriched.households_surveyed = null;
+  enriched.women_interviewed = null;
+  enriched.men_interviewed = null;
 
   enriched.metadata = {
     source: "NFHS-6",
@@ -147,7 +163,9 @@ export function getPeerAverage(similarDistricts: DistrictMetrics[]): Record<stri
         count++;
       }
     }
-    avg[field] = count > 0 ? parseFloat((sum / count).toFixed(1)) : 0;
+    if (count > 0) {
+      avg[field] = parseFloat((sum / count).toFixed(1));
+    }
   }
   return avg;
 }
@@ -170,7 +188,9 @@ export function getStateAverage(allDistricts: DistrictMetrics[]): Record<string,
         count++;
       }
     }
-    avg[field] = count > 0 ? parseFloat((sum / count).toFixed(1)) : 0;
+    if (count > 0) {
+      avg[field] = parseFloat((sum / count).toFixed(1));
+    }
   }
   return avg;
 }

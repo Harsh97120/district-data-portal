@@ -45,7 +45,7 @@ export default function SearchDirectoryPage() {
           setAllDistrictsIndex(data);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Focus inputs when search toggled
@@ -226,8 +226,8 @@ export default function SearchDirectoryPage() {
                   }}
                   title={showStateSearch ? "Close state search" : "Search state by name"}
                   className={`p-2.5 rounded-xl border flex items-center justify-center transition-all cursor-pointer ${showStateSearch
-                      ? "bg-orange-500 border-orange-500 text-white"
-                      : "bg-[#0F1117] border-[#2D3148] text-gray-400 hover:text-white hover:border-orange-500/50 hover:bg-[#242838]"
+                    ? "bg-orange-500 border-orange-500 text-white"
+                    : "bg-[#0F1117] border-[#2D3148] text-gray-400 hover:text-white hover:border-orange-500/50 hover:bg-[#242838]"
                     }`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -278,8 +278,8 @@ export default function SearchDirectoryPage() {
                             setStateSearchQuery("");
                           }}
                           className={`px-3 py-1.5 text-xs flex items-center justify-between cursor-pointer transition-colors ${selectedStateCode === s.code
-                              ? "bg-orange-500/20 text-orange-400 font-semibold"
-                              : "text-gray-300 hover:bg-[#242838] hover:text-white"
+                            ? "bg-orange-500/20 text-orange-400 font-semibold"
+                            : "text-gray-300 hover:bg-[#242838] hover:text-white"
                             }`}
                         >
                           <span>{s.name}</span>
@@ -338,8 +338,8 @@ export default function SearchDirectoryPage() {
                   disabled={loadingDistricts || districtsList.length === 0}
                   title={showDistrictSearch ? "Close district search" : "Search district by name"}
                   className={`p-2.5 rounded-xl border flex items-center justify-center transition-all disabled:opacity-50 cursor-pointer ${showDistrictSearch
-                      ? "bg-orange-500 border-orange-500 text-white"
-                      : "bg-[#0F1117] border-[#2D3148] text-gray-400 hover:text-white hover:border-orange-500/50 hover:bg-[#242838]"
+                    ? "bg-orange-500 border-orange-500 text-white"
+                    : "bg-[#0F1117] border-[#2D3148] text-gray-400 hover:text-white hover:border-orange-500/50 hover:bg-[#242838]"
                     }`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -398,8 +398,8 @@ export default function SearchDirectoryPage() {
                               setDistrictSearchQuery("");
                             }}
                             className={`px-3 py-2 text-xs flex items-center justify-between cursor-pointer transition-colors ${selectedDistrictId === d.district_id
-                                ? "bg-orange-500/20 text-orange-400 font-semibold"
-                                : "text-gray-300 hover:bg-[#242838] hover:text-white"
+                              ? "bg-orange-500/20 text-orange-400 font-semibold"
+                              : "text-gray-300 hover:bg-[#242838] hover:text-white"
                               }`}
                           >
                             <div className="flex items-center gap-2">
@@ -450,20 +450,20 @@ export default function SearchDirectoryPage() {
             </div>
           </div>
 
-          {/* Quick Preview Card */}
-          {selectedDistrict && (
+          {/* Quick Preview Card
+          {selectedDistrict ? (
             <div className="p-4 rounded-xl bg-[#0F1117] border border-[#2D3148] space-y-3 animate-fade-in">
               <div className="flex items-start justify-between">
                 <div>
                   <h4 className="text-sm font-bold text-white">
-                    {selectedDistrict.district_name}
+                    {selectedDistrict.district_name || "NA"}
                   </h4>
                   <p className="text-xs text-orange-400">
-                    {selectedDistrict.state_name} ({selectedDistrict.state_code})
+                    {selectedDistrict.state_name || "NA"} ({selectedDistrict.state_code || "NA"})
                   </p>
                 </div>
                 <span className="px-2 py-0.5 rounded-md bg-[#1A1D27] border border-[#2D3148] text-[10px] text-gray-400 font-medium">
-                  ID: {selectedDistrict.district_id}
+                  ID: {selectedDistrict.district_id || "NA"}
                 </span>
               </div>
 
@@ -471,18 +471,22 @@ export default function SearchDirectoryPage() {
                 <div className="bg-[#1A1D27] p-2.5 rounded-lg border border-[#2D3148]">
                   <span className="text-[10px] text-gray-500 block uppercase font-semibold">Literacy Rate</span>
                   <span className="text-white font-bold text-sm">
-                    {selectedDistrict.literacy_rate ? `${selectedDistrict.literacy_rate.toFixed(1)}%` : "—"}
+                    {selectedDistrict.literacy_rate != null ? `${selectedDistrict.literacy_rate.toFixed(1)}%` : "NA"}
                   </span>
                 </div>
                 <div className="bg-[#1A1D27] p-2.5 rounded-lg border border-[#2D3148]">
                   <span className="text-[10px] text-gray-500 block uppercase font-semibold">Sex Ratio</span>
                   <span className="text-white font-bold text-sm">
-                    {selectedDistrict.sex_ratio ? `${selectedDistrict.sex_ratio} / 1k` : "—"}
+                    {selectedDistrict.sex_ratio != null ? `${selectedDistrict.sex_ratio} / 1k` : "NA"}
                   </span>
                 </div>
               </div>
             </div>
-          )}
+          ) : (
+            <div className="p-4 rounded-xl bg-[#0F1117] border border-[#2D3148] text-center text-xs text-gray-500">
+              Data: NA
+            </div>
+          )} */}
 
           {/* Navigation CTA Buttons */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
