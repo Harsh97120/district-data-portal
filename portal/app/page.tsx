@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import LiveDataBackground from "@/components/ui/LiveDataBackground";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import MagneticStatCard from "@/components/ui/MagneticStatCard";
 import ScrollReveal from "@/components/ui/ScrollReveal";
@@ -25,9 +24,6 @@ export default async function HomePage() {
 
       {/* ── 1. Hero & Portal Introduction Section ── */}
       <section className="relative px-4 sm:px-6 lg:px-8 pt-20 pb-20 border-b border-[#2D3148] overflow-hidden flex flex-col items-center justify-center">
-        {/* Canvas Live Grid Background */}
-        <LiveDataBackground />
-
         {/* Fallback CSS Grid pattern */}
         <div className="absolute inset-0 grid-bg opacity-40 pointer-events-none" />
 

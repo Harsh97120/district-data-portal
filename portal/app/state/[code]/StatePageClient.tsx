@@ -5,7 +5,6 @@ import type { DistrictMetrics } from "@/lib/types/district";
 import { STATE_BY_CODE } from "@/lib/constants";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import DistrictPanel from "@/components/district/DistrictPanel";
-import MapLegend from "@/components/map/MapLegend";
 import StateMapWrapper from "@/components/map/StateMapWrapper";
 
 interface StatePageClientProps {
@@ -46,36 +45,18 @@ export default function StatePageClient({ stateCode }: StatePageClientProps) {
     setTimeout(() => setSpinning(false), 600);
   }, []);
 
-  const [benchmark, setBenchmark]             = useState<import("@/lib/data-loader").StateBenchmarkEntry | null>(null);
-
-  // Fetch metrics dynamically to calculate state averages for the header dashboard
+  // Fetch metrics dynamically to calculate district counts
   useEffect(() => {
     import("@/lib/data-loader").then((mod) => {
       mod.fetchDistrictMetrics(stateCode).then(setMetrics);
-      mod.fetchStateBenchmarkByCode(stateCode).then(setBenchmark);
     });
   }, [stateCode]);
 
   const stateInfo = STATE_BY_CODE[stateCode];
-
-  // Computations for state header summary: official Excel benchmark with district-mean fallback
   const totalDistricts = metrics?.length || 0;
-  const officialLiteracy = benchmark?.["NFHS-5"]?.literacy_rate;
-  const avgLiteracy = typeof officialLiteracy === "number"
-    ? officialLiteracy
-    : metrics && totalDistricts > 0
-    ? metrics.reduce((sum, d) => sum + (d.literacy_rate || 0), 0) / totalDistricts
-    : 0;
-
-  const officialSexRatio = benchmark?.["NFHS-5"]?.sex_ratio;
-  const avgSexRatio = typeof officialSexRatio === "number"
-    ? officialSexRatio
-    : metrics && totalDistricts > 0
-    ? metrics.reduce((sum, d) => sum + (d.sex_ratio || 0), 0) / totalDistricts
-    : 0;
 
   return (
-    <div className="flex flex-col flex-1 overflow-y-auto">
+    <div className="flex flex-col flex-1 w-full">
 
       {/* Page header */}
       <div className="px-4 sm:px-6 lg:px-8 py-4 border-b border-[#2D3148] flex flex-col sm:flex-row sm:items-center justify-between gap-4 flex-shrink-0">
@@ -92,26 +73,18 @@ export default function StatePageClient({ stateCode }: StatePageClientProps) {
           <p className="text-xs text-gray-500 mt-0.5">
             {selectedDistrict
               ? `Currently viewing details for ${selectedDistrict.district_name}`
-              : "Click any district on the interactive map to view ML development details"}
+              : "Select a district on the map to view its data."}
           </p>
         </div>
 
         {/* Right side: stats */}
-        <div className="flex items-center gap-3">
-          {/* State Summary Stats */}
+        <div className="flex items-center">
+          {/* State Summary Stats: Total Districts only */}
           {metrics && totalDistricts > 0 && (
-            <div className="flex items-center gap-3 animate-fade-in">
-              <div className="px-3.5 py-1.5 rounded-xl bg-[#1A1D27] border border-[#2D3148] text-center min-w-[70px] shadow-sm">
-                <span className="text-[9px] text-gray-500 block uppercase font-bold tracking-wider">Districts</span>
+            <div className="animate-fade-in">
+              <div className="px-4 py-2 rounded-xl bg-[#1A1D27] border border-[#2D3148] text-center min-w-[80px] shadow-sm">
+                <span className="text-[10px] text-gray-400 block uppercase font-bold tracking-wider">Total Districts</span>
                 <strong className="text-sm font-extrabold text-orange-400 block mt-0.5">{totalDistricts}</strong>
-              </div>
-              <div className="px-3.5 py-1.5 rounded-xl bg-[#1A1D27] border border-[#2D3148] text-center min-w-[90px] shadow-sm">
-                <span className="text-[9px] text-gray-500 block uppercase font-bold tracking-wider">Avg Literacy</span>
-                <strong className="text-sm font-extrabold text-orange-400 block mt-0.5">{avgLiteracy.toFixed(1)}%</strong>
-              </div>
-              <div className="px-3.5 py-1.5 rounded-xl bg-[#1A1D27] border border-[#2D3148] text-center min-w-[90px] shadow-sm">
-                <span className="text-[9px] text-gray-500 block uppercase font-bold tracking-wider">Avg Sex Ratio</span>
-                <strong className="text-sm font-extrabold text-orange-400 block mt-0.5">{avgSexRatio.toFixed(0)}</strong>
               </div>
             </div>
           )}
@@ -119,7 +92,7 @@ export default function StatePageClient({ stateCode }: StatePageClientProps) {
       </div>
 
       {/* Map + Dynamic District Panel Section */}
-      <div className="relative flex-1 flex flex-col lg:flex-row min-h-[550px] lg:h-[calc(100vh-140px)] w-full overflow-hidden">
+      <div className="relative flex-1 flex flex-col lg:flex-row w-full h-[520px] sm:h-[580px] lg:h-[calc(100vh-270px)] min-h-[500px] lg:min-h-[550px] overflow-hidden">
         {/* Map area — flex-1 will dynamically shrink when panel is active */}
         <div className="relative flex-1 h-full min-h-[450px] w-full transition-all duration-300">
           <StateMapWrapper
@@ -142,10 +115,6 @@ export default function StatePageClient({ stateCode }: StatePageClientProps) {
             <RefreshIcon spinning={spinning} />
             Reset view
           </button>
-          {/* Legend overlay */}
-          <div className="absolute bottom-4 left-4 z-20">
-            <MapLegend />
-          </div>
         </div>
 
         {/* District detail panel */}

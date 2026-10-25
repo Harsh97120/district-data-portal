@@ -73,6 +73,7 @@ body {
   font-family: "Inter", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* ── Leaflet overrides ────────────────────────────────────────── */
@@ -81,18 +82,25 @@ body {
   font-family: "Inter", sans-serif !important;
   width: 100% !important;
   height: 100% !important;
-  min-height: 480px !important;
+  
 }
 
 .leaflet-interactive {
   cursor: pointer !important;
 }
 
+.leaflet-tooltip,
 .leaflet-tooltip-custom {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+.leaflet-tooltip-pane {
+  pointer-events: none !important;
 }
 
 .leaflet-popup-content-wrapper {

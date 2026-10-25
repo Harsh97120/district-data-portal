@@ -7,7 +7,6 @@ import type { DistrictGeoProps } from "@/lib/types/district";
 import {
   fetchGeoJSON,
   getDistrictName,
-  getDistrictStyle,
   normalise,
 } from "@/lib/geo-utils";
 import { fetchDistrictMetrics, buildDistrictNameMap } from "@/lib/data-loader";
@@ -32,6 +31,20 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
+  const stateOutlineLayerRef  = useRef<LeafletGeoJSON | null>(null);
+
+  const getDistrictFeatureStyle = useCallback(
+    (isSelected: boolean, currentTheme: string) => {
+      return {
+        fillColor: "#B97835",
+        fillOpacity: isSelected ? 0.95 : (currentTheme === "dark" ? 0.75 : 0.7),
+        color: isSelected ? "#FF6B35" : (currentTheme === "dark" ? "#D4A373" : "#C49258"),
+        weight: isSelected ? 2.5 : 1.0,
+        opacity: 1,
+      };
+    },
+    []
+  );
 
   const updateStyles = useCallback((selectedId: string | null | undefined) => {
     const layer = geoLayerRef.current;
@@ -49,9 +62,9 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
       const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
       const data = districtMap.get(normalise(name)) ?? districtMap.get(slug(name));
       const isSelected = !!selectedId && data?.district_id === selectedId;
-      l.setStyle(getDistrictStyle(data?.literacy_rate, isSelected, theme));
+      l.setStyle(getDistrictFeatureStyle(isSelected, theme));
     });
-  }, [theme]);
+  }, [theme, getDistrictFeatureStyle]);
 
   /** Fly back to the full-state view */
   const handleReset = useCallback(() => {
@@ -87,10 +100,11 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
       L.control.zoom({ position: "topright" }).addTo(map);
       L.control.attribution({ position: "bottomright", prefix: false }).addTo(map);
 
-      // Load both GeoJSON and metrics in parallel
-      const [geojson, metrics] = await Promise.all([
+      // Load boundary files and metrics in parallel
+      const [geojson, metrics, stateOutline] = await Promise.all([
         fetchGeoJSON(`/data/boundaries/districts/${stateCode}.geojson`),
         fetchDistrictMetrics(stateCode),
+        fetchGeoJSON(`/data/boundaries/districts/${stateCode}-state.geojson`),
       ]);
 
       if (!geojson) {
@@ -110,7 +124,7 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
           const name = getDistrictName(feature.properties as DistrictGeoProps);
           const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
           const data = districtMap.get(normalise(name)) ?? districtMap.get(slug(name));
-          return getDistrictStyle(data?.literacy_rate, false, theme);
+          return getDistrictFeatureStyle(false, theme);
         },
         onEachFeature: (feature, featureLayer) => {
           const name = getDistrictName(feature.properties as DistrictGeoProps);
@@ -123,12 +137,19 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
               const l = e.target as any;
               const isSelected = data?.district_id === selectedDistrictId;
               if (!isSelected) {
-                l.setStyle({ fillOpacity: 0.9, weight: 1.5, color: theme === "dark" ? "#FFFFFF" : "#111827" });
+                l.setStyle({
+                  fillOpacity: 0.92,
+                  weight: 1.8,
+                  color: theme === "dark" ? "#FFFFFF" : "#111827",
+                });
               }
               l.bringToFront();
             },
             mouseout: () => {
               updateStyles(selectedDistrictId);
+              if (stateOutlineLayerRef.current) {
+                stateOutlineLayerRef.current.bringToFront();
+              }
             },
             click: () => {
               onDistrictSelect(data ?? null);
@@ -136,18 +157,13 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
           });
 
           const textColor = theme === "dark" ? "#F0F0F0" : "#111827";
-          const textMuted = theme === "dark" ? "#9CA3AF" : "#5B6472";
           const titleColor = theme === "dark" ? "#FFFFFF" : "#111827";
           const tooltipBg = theme === "dark" ? "#1A1D27" : "#FFFFFF";
           const tooltipBorder = theme === "dark" ? "#2D3148" : "#E5E7EB";
 
-          const tooltipContent = data
-            ? `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px">
-                <strong style="font-size:13px;color:${titleColor}">${name}</strong><br/>
-                <span style="color:${textMuted}">Literacy: </span>
-                <span style="color:#FF6B35;font-weight:600">${data.literacy_rate?.toFixed(1) ?? "—"}%</span>
-              </div>`
-            : `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textMuted};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px">${name}</div>`;
+          const tooltipContent = `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px">
+              <strong style="font-size:13px;color:${titleColor}">${name}</strong>
+            </div>`;
 
           featureLayer.bindTooltip(tooltipContent, {
             sticky: true,
@@ -158,6 +174,21 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
       }).addTo(map);
 
       geoLayerRef.current = layer;
+
+      // Overlay outer state boundary if available (makes outer boundary slightly more prominent)
+      if (stateOutline) {
+        const outlineLayer = L.geoJSON(stateOutline as GeoJSON.GeoJsonObject, {
+          interactive: false,
+          style: {
+            fill: false,
+            color: theme === "dark" ? "#F59E0B" : "#B45309",
+            weight: 2.2,
+            opacity: 1,
+            className: "pointer-events-none",
+          },
+        }).addTo(map);
+        stateOutlineLayerRef.current = outlineLayer;
+      }
 
       const bounds = layer.getBounds();
       if (bounds.isValid()) {
@@ -200,6 +231,7 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
         mapRef.current.remove();
         mapRef.current = null;
         geoLayerRef.current = null;
+        stateOutlineLayerRef.current = null;
       }
     };
   }, [stateCode, onDistrictSelect]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -207,6 +239,14 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
   // Re-style, update tooltips and adapt bounds when selection or theme changes
   useEffect(() => {
     updateStyles(selectedDistrictId);
+    if (stateOutlineLayerRef.current) {
+      stateOutlineLayerRef.current.setStyle({
+        fill: false,
+        color: theme === "dark" ? "#F59E0B" : "#B45309",
+        weight: 2.2,
+        opacity: 1,
+      });
+    }
     if (mapRef.current) {
       setTimeout(() => {
         if (mapRef.current) {
@@ -227,18 +267,13 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
       const data = districtMap.get(normalise(name)) ?? districtMap.get(slug(name));
 
       const textColor = theme === "dark" ? "#F0F0F0" : "#111827";
-      const textMuted = theme === "dark" ? "#9CA3AF" : "#5B6472";
       const titleColor = theme === "dark" ? "#FFFFFF" : "#111827";
       const tooltipBg = theme === "dark" ? "#1A1D27" : "#FFFFFF";
       const tooltipBorder = theme === "dark" ? "#2D3148" : "#E5E7EB";
 
-      const tooltipContent = data
-        ? `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px">
-            <strong style="font-size:13px;color:${titleColor}">${name}</strong><br/>
-            <span style="color:${textMuted}">Literacy: </span>
-            <span style="color:#FF6B35;font-weight:600">${data.literacy_rate?.toFixed(1) ?? "—"}%</span>
-          </div>`
-        : `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textMuted};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px">${name}</div>`;
+      const tooltipContent = `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px">
+          <strong style="font-size:13px;color:${titleColor}">${name}</strong>
+        </div>`;
 
       featureLayer.setTooltipContent(tooltipContent);
     });
