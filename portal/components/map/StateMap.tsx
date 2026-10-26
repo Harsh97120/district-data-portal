@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import type { Map as LeafletMap, GeoJSON as LeafletGeoJSON, LatLngBounds, Layer } from "leaflet";
+import type { Map as LeafletMap, GeoJSON as LeafletGeoJSON, LatLngBounds } from "leaflet";
 import type { DistrictMetrics } from "@/lib/types/district";
 import type { DistrictGeoProps } from "@/lib/types/district";
 import {
@@ -12,6 +12,12 @@ import {
 import { fetchDistrictMetrics, buildDistrictNameMap } from "@/lib/data-loader";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useTheme } from "@/lib/ThemeContext";
+import { getMpiChoroplethColor } from "@/lib/mpi-state-data";
+import {
+  fetchMpiDistricts,
+  getDistrictMpiHcr,
+  type MpiDistrictRecord,
+} from "@/lib/mpi-district-data";
 
 interface StateMapProps {
   stateCode: string;
@@ -26,6 +32,7 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
   const containerRef   = useRef<HTMLDivElement | null>(null);
   const geoLayerRef    = useRef<LeafletGeoJSON | null>(null);
   const districtMapRef = useRef<Map<string, DistrictMetrics> | null>(null);
+  const mpiRecordsRef  = useRef<Record<string, MpiDistrictRecord> | null>(null);
   const boundsRef      = useRef<LatLngBounds | null>(null);
 
   const { theme } = useTheme();
@@ -34,12 +41,15 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
   const stateOutlineLayerRef  = useRef<LeafletGeoJSON | null>(null);
 
   const getDistrictFeatureStyle = useCallback(
-    (isSelected: boolean, currentTheme: string) => {
+    (mpiHcr: number | null | undefined, isSelected: boolean, currentTheme: string) => {
+      const fillColor = getMpiChoroplethColor(mpiHcr);
       return {
-        fillColor: "#B97835",
+        fillColor,
         fillOpacity: isSelected ? 0.95 : (currentTheme === "dark" ? 0.75 : 0.7),
-        color: isSelected ? "#FF6B35" : (currentTheme === "dark" ? "#D4A373" : "#C49258"),
-        weight: isSelected ? 2.5 : 1.0,
+        color: isSelected
+          ? "#FF6B35"
+          : (currentTheme === "dark" ? "rgba(255,255,255,0.3)" : "rgba(17,24,39,0.2)"),
+        weight: isSelected ? 2.5 : 0.8,
         opacity: 1,
       };
     },
@@ -49,6 +59,7 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
   const updateStyles = useCallback((selectedId: string | null | undefined) => {
     const layer = geoLayerRef.current;
     const districtMap = districtMapRef.current;
+    const mpiRecords = mpiRecordsRef.current;
     if (!layer || !districtMap) return;
 
     layer.eachLayer((featureLayer) => {
@@ -62,9 +73,10 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
       const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
       const data = districtMap.get(normalise(name)) ?? districtMap.get(slug(name));
       const isSelected = !!selectedId && data?.district_id === selectedId;
-      l.setStyle(getDistrictFeatureStyle(isSelected, theme));
+      const mpiHcr = getDistrictMpiHcr(data?.district_id, name, stateCode, mpiRecords);
+      l.setStyle(getDistrictFeatureStyle(mpiHcr, isSelected, theme));
     });
-  }, [theme, getDistrictFeatureStyle]);
+  }, [theme, stateCode, getDistrictFeatureStyle]);
 
   /** Fly back to the full-state view */
   const handleReset = useCallback(() => {
@@ -100,11 +112,12 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
       L.control.zoom({ position: "topright" }).addTo(map);
       L.control.attribution({ position: "bottomright", prefix: false }).addTo(map);
 
-      // Load boundary files and metrics in parallel
-      const [geojson, metrics, stateOutline] = await Promise.all([
+      // Load boundary files, metrics, and MPI dataset in parallel
+      const [geojson, metrics, stateOutline, mpiRecords] = await Promise.all([
         fetchGeoJSON(`/data/boundaries/districts/${stateCode}.geojson`),
         fetchDistrictMetrics(stateCode),
         fetchGeoJSON(`/data/boundaries/districts/${stateCode}-state.geojson`),
+        fetchMpiDistricts(),
       ]);
 
       if (!geojson) {
@@ -117,6 +130,7 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
 
       const districtMap = buildDistrictNameMap(metrics ?? []);
       districtMapRef.current = districtMap;
+      mpiRecordsRef.current = mpiRecords;
 
       const layer = L.geoJSON(geojson as GeoJSON.GeoJsonObject, {
         style: (feature) => {
@@ -124,12 +138,14 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
           const name = getDistrictName(feature.properties as DistrictGeoProps);
           const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
           const data = districtMap.get(normalise(name)) ?? districtMap.get(slug(name));
-          return getDistrictFeatureStyle(false, theme);
+          const mpiHcr = getDistrictMpiHcr(data?.district_id, name, stateCode, mpiRecords);
+          return getDistrictFeatureStyle(mpiHcr, false, theme);
         },
         onEachFeature: (feature, featureLayer) => {
           const name = getDistrictName(feature.properties as DistrictGeoProps);
           const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
           const data = districtMap.get(normalise(name)) ?? districtMap.get(slug(name));
+          const mpiHcr = getDistrictMpiHcr(data?.district_id, name, stateCode, mpiRecords);
 
           featureLayer.on({
             mouseover: (e) => {
@@ -138,8 +154,8 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
               const isSelected = data?.district_id === selectedDistrictId;
               if (!isSelected) {
                 l.setStyle({
-                  fillOpacity: 0.92,
-                  weight: 1.8,
+                  fillOpacity: 0.95,
+                  weight: 2.0,
                   color: theme === "dark" ? "#FFFFFF" : "#111827",
                 });
               }
@@ -161,8 +177,12 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
           const tooltipBg = theme === "dark" ? "#1A1D27" : "#FFFFFF";
           const tooltipBorder = theme === "dark" ? "#2D3148" : "#E5E7EB";
 
-          const tooltipContent = `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px">
-              <strong style="font-size:13px;color:${titleColor}">${name}</strong>
+          const tooltipContent = `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5)">
+              <div style="font-size:13px;font-weight:700;color:${titleColor}">${name}</div>
+              <div style="font-size:11px;font-weight:600;color:#FFA726;margin-top:2px">
+                MPI Headcount: <b>${mpiHcr !== null && mpiHcr !== undefined ? `${mpiHcr.toFixed(2)}%` : "No data"}</b>
+              </div>
+              <div style="font-size:10px;color:#9CA3AF;margin-top:3px">Click to view details →</div>
             </div>`;
 
           featureLayer.bindTooltip(tooltipContent, {
@@ -257,6 +277,7 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
 
     const layer = geoLayerRef.current;
     const districtMap = districtMapRef.current;
+    const mpiRecords = mpiRecordsRef.current;
     if (!layer || !districtMap) return;
 
     layer.eachLayer((featureLayer: any) => {
@@ -265,19 +286,24 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
       const name = getDistrictName(props);
       const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
       const data = districtMap.get(normalise(name)) ?? districtMap.get(slug(name));
+      const mpiHcr = getDistrictMpiHcr(data?.district_id, name, stateCode, mpiRecords);
 
       const textColor = theme === "dark" ? "#F0F0F0" : "#111827";
       const titleColor = theme === "dark" ? "#FFFFFF" : "#111827";
       const tooltipBg = theme === "dark" ? "#1A1D27" : "#FFFFFF";
       const tooltipBorder = theme === "dark" ? "#2D3148" : "#E5E7EB";
 
-      const tooltipContent = `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px">
-          <strong style="font-size:13px;color:${titleColor}">${name}</strong>
+      const tooltipContent = `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5)">
+          <div style="font-size:13px;font-weight:700;color:${titleColor}">${name}</div>
+          <div style="font-size:11px;font-weight:600;color:#FFA726;margin-top:2px">
+            MPI Headcount: <b>${mpiHcr !== null && mpiHcr !== undefined ? `${mpiHcr.toFixed(2)}%` : "No data"}</b>
+          </div>
+          <div style="font-size:10px;color:#9CA3AF;margin-top:3px">Click to view details →</div>
         </div>`;
 
       featureLayer.setTooltipContent(tooltipContent);
     });
-  }, [theme, selectedDistrictId, updateStyles]);
+  }, [theme, selectedDistrictId, stateCode, updateStyles]);
 
   return (
     <div className="relative w-full h-full min-h-[450px]">

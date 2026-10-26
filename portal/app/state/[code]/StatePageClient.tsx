@@ -6,6 +6,8 @@ import { STATE_BY_CODE } from "@/lib/constants";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import DistrictPanel from "@/components/district/DistrictPanel";
 import StateMapWrapper from "@/components/map/StateMapWrapper";
+import MPIChoroplethLegend from "@/components/map/MPIChoroplethLegend";
+import { fetchMpiDistricts, stateHasMissingMpi } from "@/lib/mpi-district-data";
 
 interface StatePageClientProps {
   stateCode: string;
@@ -28,6 +30,7 @@ function RefreshIcon({ spinning }: { spinning: boolean }) {
 export default function StatePageClient({ stateCode }: StatePageClientProps) {
   const [selectedDistrict, setSelectedDistrict] = useState<DistrictMetrics | null>(null);
   const [metrics, setMetrics]                   = useState<DistrictMetrics[] | null>(null);
+  const [hasMissingData, setHasMissingData]     = useState(false);
   const [spinning, setSpinning]                 = useState(false);
   const resetFnRef                              = useRef<(() => void) | null>(null);
 
@@ -49,6 +52,13 @@ export default function StatePageClient({ stateCode }: StatePageClientProps) {
   useEffect(() => {
     import("@/lib/data-loader").then((mod) => {
       mod.fetchDistrictMetrics(stateCode).then(setMetrics);
+    });
+  }, [stateCode]);
+
+  // Check if current state has any districts with missing MPI data
+  useEffect(() => {
+    fetchMpiDistricts().then((records) => {
+      setHasMissingData(stateHasMissingMpi(stateCode, records));
     });
   }, [stateCode]);
 
@@ -115,6 +125,14 @@ export default function StatePageClient({ stateCode }: StatePageClientProps) {
             <RefreshIcon spinning={spinning} />
             Reset view
           </button>
+
+          {/* MPI Range Indicator / Legend — bottom left overlay */}
+          <div className="absolute bottom-6 left-6 z-20">
+            <MPIChoroplethLegend
+              hasMissingData={hasMissingData}
+              totalItemsLabel={totalDistricts > 0 ? `${totalDistricts} Districts` : undefined}
+            />
+          </div>
         </div>
 
         {/* District detail panel */}

@@ -24,7 +24,7 @@ interface MpiDistrictData {
   district_name: string;
   state_code: string;
   state_name: string;
-  mpi_hcr: number;
+  mpi_hcr: number | null;
   state_mpi_hcr: number;
   national_mpi_hcr: number;
   total_population: number;
@@ -40,7 +40,7 @@ interface MpiDistrictData {
 
 interface MpiStateData {
   state_code: string;
-  mpi_hcr: number;
+  mpi_hcr: number | null;
   literacy_rate: number;
   workforce_rate: number;
   internet_access_pct: number;
@@ -101,8 +101,8 @@ export default function DistrictFingerprint({ district }: DistrictFingerprintPro
   };
 
   // Freedom from Poverty (100 - MPI HCR) for radar chart (higher is better)
-  const distNonPoor = parseFloat(Math.max(0, 100 - mpiInfo.mpi_hcr).toFixed(1));
-  const stateNonPoor = parseFloat(Math.max(0, 100 - stateInfo.mpi_hcr).toFixed(1));
+  const distNonPoor = parseFloat(Math.max(0, 100 - (mpiInfo.mpi_hcr ?? mpiInfo.state_mpi_hcr ?? 15)).toFixed(1));
+  const stateNonPoor = parseFloat(Math.max(0, 100 - (stateInfo.mpi_hcr ?? 18)).toFixed(1));
 
   const radarData = [
     {
@@ -219,7 +219,7 @@ export default function DistrictFingerprint({ district }: DistrictFingerprintPro
             <div className="my-2">
               <div className="flex items-baseline gap-1.5">
                 <span className="text-3xl font-extrabold text-white tabular-nums">
-                  {mpiInfo.mpi_hcr}%
+                  {mpiInfo.mpi_hcr !== null && mpiInfo.mpi_hcr !== undefined ? `${mpiInfo.mpi_hcr}%` : "N/A"}
                 </span>
                 <span className="text-xs text-gray-400">deprived</span>
               </div>

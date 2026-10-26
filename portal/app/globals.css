@@ -418,24 +418,13 @@ body {
   .group:hover .animate-doc-scan,
   .animate-premium-fade-up,
   .animate-ai-button-glow,
-  .animate-chatbot-panel-open,
-  .animate-scroll-mouse {
+  .animate-chatbot-panel-open {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
   }
 }
 
-/* Mouse scroll animation */
-@keyframes scrollMouse {
-  0% { transform: translateY(0); opacity: 1; }
-  50% { transform: translateY(4px); opacity: 0.4; }
-  100% { transform: translateY(0); opacity: 1; }
-}
-
-.animate-scroll-mouse {
-  animation: scrollMouse 1.8s ease-in-out infinite;
-}
 
 /* ── Theme color overrides for compiled Tailwind classes (Light Mode) ── */
 html:not(.dark) {

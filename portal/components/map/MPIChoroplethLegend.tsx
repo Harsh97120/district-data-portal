@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { MPI_CHOROPLETH_RANGES } from "@/lib/mpi-state-data";
 
-export default function MPIChoroplethLegend() {
+interface MPIChoroplethLegendProps {
+  hasMissingData?: boolean;
+  totalItemsLabel?: string;
+}
+
+export default function MPIChoroplethLegend({
+  hasMissingData = false,
+  totalItemsLabel = "37 States & UTs",
+}: MPIChoroplethLegendProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -88,6 +96,23 @@ export default function MPIChoroplethLegend() {
                 </span>
               </div>
             ))}
+
+            {hasMissingData && (
+              <div className="flex items-center justify-between text-xs py-0.5 px-1 rounded hover:bg-white/5 transition-colors">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="w-4 h-3 rounded-[3px] flex-none border border-black/30 shadow-xs"
+                    style={{ backgroundColor: "#374151" }}
+                  />
+                  <span className="text-[11px] font-semibold text-gray-400 font-mono">
+                    No data
+                  </span>
+                </div>
+                <span className="text-[10px] text-gray-500 font-medium">
+                  Missing data
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Footer citation & benchmark */}
@@ -96,7 +121,7 @@ export default function MPIChoroplethLegend() {
               <span className="text-orange-400">●</span>
               <span>NITI Aayog / NFHS-5</span>
             </span>
-            <span className="text-gray-400 font-mono">37 States &amp; UTs</span>
+            <span className="text-gray-400 font-mono">{totalItemsLabel}</span>
           </div>
         </div>
       )}

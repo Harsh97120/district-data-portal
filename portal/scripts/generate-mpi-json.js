@@ -155,12 +155,17 @@ if (!statesOutput['LA']) {
 
 const nationalMpiHcr = natTotalPop > 0 ? parseFloat((natWeightedHcr / natTotalPop).toFixed(2)) : 24.85;
 
-// Common district aliases
+// Common district aliases & administrative name variations
 const aliasMap = {
+  // Gujarat
   'ahmedabad': 'ahmadabad',
   'kutch': 'kachchh',
   'mehsana': 'mahesana',
   'dahod': 'dohad',
+  'panchmahal': 'panchmahals',
+  'dang': 'thedangs',
+  'banaskantha': 'banaskantha',
+  'sabarkantha': 'sabarkantha',
   'chhotaudaipur': 'vadodara',
   'girsomnath': 'junagadh',
   'botad': 'bhavnagar',
@@ -168,6 +173,8 @@ const aliasMap = {
   'mahisagar': 'panchmahals',
   'morbi': 'rajkot',
   'devbhoomidwarka': 'jamnagar',
+
+  // Karnataka
   'bengaluruurban': 'bangalore',
   'bengalururural': 'bangalorerural',
   'mysuru': 'mysore',
@@ -176,18 +183,85 @@ const aliasMap = {
   'shivamogga': 'shimoga',
   'vijayapura': 'bijapur',
   'ballari': 'bellary',
+  'chikkamagaluru': 'chikmagalur',
+  'tumakuru': 'tumkur',
+  'bagalkote': 'bagalkot',
+  'chamarajanagara': 'chamarajanagar',
+
+  // Haryana
+  'gurugram': 'gurgaon',
+  'nuh': 'mewat',
+
+  // Uttar Pradesh
   'prayagraj': 'allahabad',
   'ayodhya': 'faizabad',
   'varanasi': 'varanasi',
   'gautambuddhanagar': 'gautambuddhanagar',
+  'hathras': 'mahamayanagar',
+  'kasganj': 'kanshiramnagar',
+  'amroha': 'jyotibaphulenagar',
+  'sambhal': 'bhimnagar',
+  'shamli': 'prabuddhannagar',
+  'amethi': 'csmngar',
+  'hapur': 'panchsheelnagar',
+  'bhadohi': 'santravidasnagar',
+
+  // Maharashtra
   'mumbaisuburban': 'mumbaisuburban',
   'palghar': 'thane',
-  'hapur': 'panchsheelnagar',
-  'sambhal': 'bhimnagar',
-  'amroha': 'jyotibaphulenagar',
-  'amethi': 'csmngar',
-  'kasganj': 'kanshiramnagar',
-  'shamli': 'prabuddhannagar'
+
+  // West Bengal
+  'hooghly': 'hugli',
+  'howrah': 'haora',
+  'medinipurwest': 'paschimmedinipur',
+  'medinipureast': 'purbamedinipur',
+  'coochbehar': 'kochbihar',
+  'barddhaman': 'barddhaman',
+
+  // Odisha
+  'angul': 'anugul',
+  'balasore': 'baleshwar',
+  'bolangir': 'balangir',
+  'deogarh': 'debagarh',
+  'jajpur': 'jajapur',
+  'jagatsinghpur': 'jagatsinghapur',
+  'subarnapur': 'sonapur',
+  'nabarangpur': 'nabarangapur',
+
+  // Ladakh
+  'leh': 'lehladakh',
+  'kargil': 'kargil',
+
+  // Sikkim
+  'gyalshing': 'west',
+  'namchi': 'south',
+  'mangan': 'north',
+  'gangtok': 'east',
+
+  // Punjab
+  'ferozepur': 'firozpur',
+  'sasnagar': 'sahibzadaajitsinghnagar',
+  'srimuktsarsahib': 'muktsar',
+
+  // Madhya Pradesh
+  'khargone': 'westnimar',
+  'khandwa': 'eastnimar',
+
+  // Tamil Nadu
+  'tuticorin': 'thoothukkudi',
+  'kanchipuram': 'kancheepuram',
+  'villupuram': 'viluppuram',
+
+  // Delhi
+  'delhinorth': 'north',
+  'delhisouth': 'south',
+  'delhieast': 'east',
+  'delhiwest': 'west',
+  'centraldelhi': 'central',
+  'northwestdelhi': 'northwest',
+  'northeastdelhi': 'northeast',
+  'southwestdelhi': 'southwest',
+  'newdelhi': 'newdelhi'
 };
 
 // Match districts from metrics JSON files
@@ -200,7 +274,12 @@ let totalDistricts = 0;
 metricFiles.forEach(file => {
   const stateCode = file.replace('.json', '');
   const districts = JSON.parse(fs.readFileSync(path.join(metricsDir, file)));
-  const stateCandidates = csvDistricts.filter(c => c.stateCode === stateCode);
+  let stateCandidates = csvDistricts.filter(c => c.stateCode === stateCode);
+  if (stateCode === 'TS') {
+    stateCandidates = csvDistricts.filter(c => c.stateCode === 'AP');
+  } else if (stateCode === 'LA') {
+    stateCandidates = csvDistricts.filter(c => c.stateCode === 'JK');
+  }
   const stateStat = statesOutput[stateCode] || { mpi_hcr: 15.0, literacy_rate: 70.0, workforce_rate: 40.0, internet_access_pct: 10.0 };
 
   districts.forEach(d => {
@@ -243,7 +322,7 @@ metricFiles.forEach(file => {
         district_name: d.district_name,
         state_code: stateCode,
         state_name: d.state_name,
-        mpi_hcr: stateStat.mpi_hcr,
+        mpi_hcr: null,
         state_mpi_hcr: stateStat.mpi_hcr,
         national_mpi_hcr: nationalMpiHcr,
         total_population: (d.households_surveyed ? d.households_surveyed * 800 : 1500000),

@@ -3,7 +3,6 @@ import Link from "next/link";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import MagneticStatCard from "@/components/ui/MagneticStatCard";
 import ScrollReveal from "@/components/ui/ScrollReveal";
-import ScrollIndicator from "@/components/ui/ScrollIndicator";
 import { fetchDistrictsIndex } from "@/lib/data-loader";
 import { METRIC_LABELS } from "@/lib/constants";
 
@@ -32,9 +31,9 @@ export default async function HomePage() {
 
         <div className="max-w-4xl mx-auto text-center space-y-6 relative z-10">
           {/* Badge */}
-          <div className="animate-premium-fade-up delay-0 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-medium tracking-wide mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B35]" />
-            National Family Health Survey · NFHS-5 (2019–21)
+          <div className="animate-premium-fade-up delay-0 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[11px] sm:text-xs font-medium tracking-wide mb-2 max-w-full text-center">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B35] flex-shrink-0" />
+            <span>National Family Health Survey · NFHS-5 (2019–21) & NFHS-6 (2023–24)</span>
           </div>
 
           {/* Title */}
@@ -129,8 +128,6 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* Scroll mouse indicator */}
-        <ScrollIndicator />
       </section>
 
       {/* ── 2. Two Navigation Portals / Sections ── */}
@@ -152,81 +149,34 @@ export default async function HomePage() {
         </ScrollReveal>
 
         {/* Dual Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 items-stretch">
 
           {/* Card 1: Map Explorer */}
           <ScrollReveal delay={150}>
-            <div className="flex flex-col justify-between rounded-2xl bg-[#161822]/90 border border-[#262A3B] p-6 sm:p-7 shadow-sm hover:border-orange-500/40 hover:-translate-y-1 transition-all duration-200 group h-full">
+            <div className="flex flex-col justify-between rounded-xl bg-[#161822] border border-[#262A3B] p-5 sm:p-6 hover:border-orange-500/40 transition-colors h-full">
               <div>
-                {/* Header Row */}
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <span className="text-[11px] font-semibold text-orange-400/90 tracking-wide uppercase">
-                      Browse by location
-                    </span>
-                    <h3 className="text-xl font-bold text-white tracking-tight mt-0.5">
-                      Explore districts on the map
-                    </h3>
-                    <p className="text-xs sm:text-sm text-gray-400 mt-1 leading-relaxed">
-                      Choose a state to view its districts and available data.
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 flex-shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                    </svg>
-                  </div>
+                <div className="w-10 h-10 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 mb-3.5">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  </svg>
                 </div>
 
-                {/* Map Visual Preview Box */}
-                <div className="my-5 rounded-xl bg-[#12141D] border border-[#262A3B] p-4 flex items-center justify-between gap-4 min-h-[140px] relative overflow-hidden">
-                  <div className="space-y-2 z-10 max-w-[60%]">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-orange-400" />
-                      <span className="text-xs font-semibold text-gray-200">Interactive GIS Map</span>
-                    </div>
-                    <p className="text-[11px] text-gray-400 leading-relaxed">
-                      Select states to view district boundary lines, literacy choropleths, and key indicators.
-                    </p>
-                    <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 border border-white/10 text-gray-300 font-medium">
-                        State Zoom
-                      </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 border border-white/10 text-gray-300 font-medium">
-                        Choropleth
-                      </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 border border-white/10 text-gray-300 font-medium">
-                        Side Panel
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* India outline SVG silhouette */}
-                  <div className="relative w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0 flex items-center justify-center">
-                    <svg viewBox="20 0 80 115" className="w-full h-full text-orange-400/80 drop-shadow-sm" fill="none">
-                      <line x1="20" y1="35" x2="100" y2="35" stroke="currentColor" strokeOpacity="0.08" strokeDasharray="2 2" />
-                      <line x1="20" y1="70" x2="100" y2="70" stroke="currentColor" strokeOpacity="0.08" strokeDasharray="2 2" />
-                      <line x1="60" y1="0" x2="60" y2="115" stroke="currentColor" strokeOpacity="0.08" strokeDasharray="2 2" />
-                      <path
-                        d="M 50 5 L 53 10 L 52 15 L 55 20 L 54 25 L 58 28 L 62 28 L 66 32 L 72 32 L 76 35 L 82 30 L 88 30 L 92 34 L 92 40 L 88 44 L 82 44 L 76 46 L 72 44 L 70 50 L 64 54 L 60 62 L 56 72 L 53 84 L 51 96 L 51 102 L 48 92 L 46 80 L 44 70 L 42 60 L 38 52 L 33 48 L 29 40 L 33 34 L 38 30 L 42 28 L 44 20 L 47 15 L 47 10 Z"
-                        fill="rgba(255, 107, 53, 0.12)"
-                        stroke="#FF6B35"
-                        strokeWidth="1.8"
-                        strokeLinejoin="round"
-                      />
-                      <circle cx="38" cy="48" r="3" fill="#FF6B35" />
-                      <circle cx="38" cy="48" r="6" stroke="#FF6B35" strokeWidth="1" strokeOpacity="0.5" />
-                    </svg>
-                  </div>
-                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+                  Explore districts on the map
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-400 mt-1.5 leading-relaxed">
+                  Choose a state and explore its districts on the map.
+                </p>
               </div>
 
               {/* Action row */}
-              <div className="pt-4 border-t border-[#262A3B] flex items-center justify-between">
-                <span className="text-xs text-gray-500 font-medium">37 States & UTs mapped</span>
+              <div className="pt-4 mt-5 border-t border-[#262A3B] flex items-center justify-between gap-3">
+                <span className="text-xs text-gray-400 font-medium">
+                  {stateCount !== null ? `${stateCount} States & UTs mapped` : null}
+                </span>
                 <Link
                   href="/map"
-                  className="py-2.5 px-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-medium text-xs sm:text-sm flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="py-2 px-3.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-medium text-xs sm:text-sm inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm flex-shrink-0"
                 >
                   <span>Explore map →</span>
                 </Link>
@@ -236,87 +186,30 @@ export default async function HomePage() {
 
           {/* Card 2: Search and Filter */}
           <ScrollReveal delay={200}>
-            <div className="flex flex-col justify-between rounded-2xl bg-[#161822]/90 border border-[#262A3B] p-6 sm:p-7 shadow-sm hover:border-emerald-500/40 hover:-translate-y-1 transition-all duration-200 group h-full">
+            <div className="flex flex-col justify-between rounded-xl bg-[#161822] border border-[#262A3B] p-5 sm:p-6 hover:border-emerald-500/40 transition-colors h-full">
               <div>
-                {/* Header Row */}
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <span className="text-[11px] font-semibold text-emerald-400/90 tracking-wide uppercase">
-                      Browse by keyword
-                    </span>
-                    <h3 className="text-xl font-bold text-white tracking-tight mt-0.5">
-                      Search districts and indicators
-                    </h3>
-                    <p className="text-xs sm:text-sm text-gray-400 mt-1 leading-relaxed">
-                      Find a district or look up a survey indicator by name.
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  </div>
+                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3.5">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
                 </div>
 
-                {/* Search Visual Preview Box */}
-                <div className="my-5 rounded-xl bg-[#12141D] border border-[#262A3B] p-4 flex flex-col justify-between min-h-[140px] space-y-3">
-                  {/* Simulated search input */}
-                  <Link
-                    href="/search"
-                    className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg bg-[#181B26] border border-[#2D3148] hover:border-emerald-500/40 transition-colors"
-                  >
-                    <div className="flex items-center gap-2.5 text-gray-400 min-w-0">
-                      <svg className="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                      <span className="text-xs text-gray-400 truncate">Search Surat, Gujarat, Child anaemia...</span>
-                    </div>
-                    <span className="text-[10px] text-gray-400 font-mono bg-white/5 px-1.5 py-0.5 rounded border border-white/10 flex-shrink-0 ml-2">
-                      Filter
-                    </span>
-                  </Link>
-
-                  {/* Example query chips */}
-                  <div className="space-y-1.5">
-                    <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold block">
-                      Popular queries:
-                    </span>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <Link
-                        href="/district/GJ-Surat"
-                        className="text-[11px] px-2.5 py-1 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/20 transition-colors"
-                      >
-                        Surat
-                      </Link>
-                      <Link
-                        href="/state/GJ"
-                        className="text-[11px] px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 transition-colors"
-                      >
-                        Gujarat
-                      </Link>
-                      <Link
-                        href="/search"
-                        className="text-[11px] px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 transition-colors"
-                      >
-                        Child anaemia
-                      </Link>
-                      <Link
-                        href="/search"
-                        className="text-[11px] px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 transition-colors"
-                      >
-                        Literacy rate
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+                  Search districts and indicators
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-400 mt-1.5 leading-relaxed">
+                  Search for a district or find information about a survey indicator.
+                </p>
               </div>
 
               {/* Action row */}
-              <div className="pt-4 border-t border-[#262A3B] flex items-center justify-between">
-                <span className="text-xs text-gray-500 font-medium">739 Districts indexed</span>
+              <div className="pt-4 mt-5 border-t border-[#262A3B] flex items-center justify-between gap-3">
+                <span className="text-xs text-gray-400 font-medium">
+                  {districtCount !== null ? `${districtCount} Districts indexed` : null}
+                </span>
                 <Link
                   href="/search"
-                  className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs sm:text-sm flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="py-2 px-3.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs sm:text-sm inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm flex-shrink-0"
                 >
                   <span>Search data →</span>
                 </Link>
