@@ -183,23 +183,49 @@ export default function AboutPage() {
 
         <hr className="border-[#2D3148]" />
 
-        {/* ── Data Sources ── */}
+        {/* ── What is NFHS? ── */}
         <section className="space-y-4">
           <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-            Data sources
+            What is NFHS?
           </h2>
 
           <div className="space-y-3 text-sm sm:text-base text-gray-300 leading-relaxed max-w-3xl">
             <p>
-              The portal uses data from the fifth round of the National Family Health Survey
-              (NFHS-5), conducted between 2019 and 2021 by the International Institute for Population
-              Sciences (IIPS) under the stewardship of the Ministry of Health and Family Welfare
-              (MoHFW), Government of India.
+              NFHS stands for the <strong className="font-bold text-white">National Family Health Survey</strong>. It is a large survey conducted across India to collect information about people&apos;s health and family well-being. It covers topics such as health, nutrition, women and children, and access to healthcare.
             </p>
-            <div className="border-l-2 border-orange-500/60 pl-4 py-1 text-sm text-gray-400 leading-relaxed">
-              Indicator values and comparisons shown on this website are limited to the figures
-              available in this survey dataset. They reflect the 2019–21 survey period and should
-              not be treated as live administrative statistics or official rankings.
+            <p>
+              The survey provides information about different states and districts. This website uses NFHS data to help users explore district-level information, understand survey results, and compare available data between districts and states.
+            </p>
+          </div>
+        </section>
+
+        <hr className="border-[#2D3148]" />
+
+        {/* ── About the Data ── */}
+        <section className="space-y-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            About the data
+          </h2>
+
+          <div className="space-y-3 text-sm sm:text-base text-gray-300 leading-relaxed max-w-3xl">
+            <p>
+              The portal uses data from the NFHS survey reports and fact sheets. It presents available information in a simple format using maps, charts, and district dashboards.
+            </p>
+            <p>
+              The values shown on the website come from the available survey datasets. Some indicators or districts may not have data available. Survey results describe the period in which the survey was conducted and may not represent the current situation.
+            </p>
+            <div className="pt-1">
+              <p className="text-sm font-medium text-white mb-2">
+                Supported survey periods:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-sm text-gray-300 pl-1">
+                <li>
+                  <strong className="text-white font-medium">NFHS-5:</strong> 2019–21
+                </li>
+                <li>
+                  <strong className="text-white font-medium">NFHS-6:</strong> 2023–24
+                </li>
+              </ul>
             </div>
           </div>
         </section>

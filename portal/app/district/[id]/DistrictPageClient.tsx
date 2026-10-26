@@ -155,6 +155,11 @@ export default function DistrictPageClient({
             const barBg = "bg-[#66BB6A]";
             const statusLabel = "Strong Performance";
 
+            const isAhmedabad =
+              activeDistrict.district_id === "GJ-Ahmedabad" ||
+              activeDistrict.district_name.toLowerCase() === "ahmedabad";
+            const categoryLabel = key === "women" && isAhmedabad ? "Women" : label;
+
             return (
               <Link
                 key={key}
@@ -165,7 +170,7 @@ export default function DistrictPageClient({
                   <div className="flex items-start justify-between gap-3 mb-4">
                     <div>
                       <h4 className="text-base sm:text-lg font-bold text-white group-hover:text-[#66BB6A] transition-colors">
-                        {label}
+                        {categoryLabel}
                       </h4>
                       <span className="text-xs text-gray-400 mt-1 block">
                         {catInfo?.indicators.length} tracked indicators

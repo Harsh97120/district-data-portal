@@ -136,12 +136,6 @@ export default function SearchDirectoryPage() {
     }
   };
 
-  const handleNavigateToState = () => {
-    if (selectedStateCode) {
-      router.push(`/state/${selectedStateCode}`);
-    }
-  };
-
   return (
     <div className="flex flex-col flex-1 pb-16">
       {/* Header Bar */}
@@ -488,8 +482,8 @@ export default function SearchDirectoryPage() {
             </div>
           )} */}
 
-          {/* Navigation CTA Buttons */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          {/* Navigation CTA Button */}
+          <div className="pt-2">
             <button
               onClick={handleNavigateToDistrict}
               disabled={!selectedDistrictId}
@@ -498,17 +492,6 @@ export default function SearchDirectoryPage() {
               <span>View Full District Data Page</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </button>
-
-            <button
-              onClick={handleNavigateToState}
-              disabled={!selectedStateCode}
-              className="w-full py-3 px-4 rounded-xl bg-[#0F1117] hover:bg-[#242838] border border-[#2D3148] text-gray-300 hover:text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <span>Explore {selectedStateInfo?.name ?? selectedStateCode} on State Map</span>
-              <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </button>
           </div>
