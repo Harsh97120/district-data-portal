@@ -30,12 +30,6 @@ export default async function HomePage() {
         <div className="glow-accent" />
 
         <div className="max-w-4xl mx-auto text-center space-y-6 relative z-10">
-          {/* Badge */}
-          <div className="animate-premium-fade-up delay-0 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[11px] sm:text-xs font-medium tracking-wide mb-2 max-w-full text-center">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B35] flex-shrink-0" />
-            <span>National Family Health Survey · NFHS-5 (2019–21) & NFHS-6 (2023–24)</span>
-          </div>
-
           {/* Title */}
           <h1 className="animate-premium-fade-up delay-100 text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-[1.12] max-w-3xl mx-auto">
             India District<br />
@@ -100,7 +94,7 @@ export default async function HomePage() {
                   {indicatorCount !== null ? <AnimatedCounter target={indicatorCount} /> : "NA"}
                 </span>
                 <span className="text-gray-400 text-[11px] font-medium block mt-1 tracking-wider uppercase">
-                  NFHS-5 indicators
+                  Tracked indicators
                 </span>
               </div>
             </MagneticStatCard>
@@ -117,11 +111,11 @@ export default async function HomePage() {
                 </svg>
               </div>
               <div>
-                <span className="text-xl font-bold text-white tracking-tight">
-                  NFHS-5 (2019-21) & NFHS-6 (2023-24)
+                <span className="text-base sm:text-lg font-bold text-white tracking-tight block leading-snug">
+                  NFHS-5, NFHS-6, NITI Aayog & Census
                 </span>
                 <span className="text-gray-400 text-[11px] font-medium block mt-1 tracking-wider uppercase">
-                  Survey period
+                  Data sources & coverage
                 </span>
               </div>
             </MagneticStatCard>
