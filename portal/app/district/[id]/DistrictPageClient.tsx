@@ -311,10 +311,10 @@ export default function DistrictPageClient({
           </div>
         </div>
 
-        {/* NFHS Survey Methodology Metadata */}
+        {/* Survey Sample & Metadata */}
         <div>
           <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">
-            Data & Methodology (Survey Metadata)
+            Survey Sample & Official Metadata
           </h3>
           <p className="text-xs text-gray-400 mb-4 leading-relaxed">
             Data collected by the Ministry of Health & Family Welfare during the National Family Health Survey ({activeDistrict.metadata.source}). Sample sizes and respondents interviewed:
@@ -345,7 +345,7 @@ export default function DistrictPageClient({
 
       {/* Footer Attribution */}
       <div className="pt-4 text-center text-[10px] text-gray-600">
-        Data Sources: Ministry of Health and Family Welfare, Government of India. Fact sheets retrieved from {activeDistrict.metadata.source} publications. For questions, consult the official{" "}
+        Data Sources: Ministry of Health and Family Welfare (MoHFW), NITI Aayog (National Multidimensional Poverty Index) & Census of India. Fact sheets retrieved from {activeDistrict.metadata.source} publications. For questions, consult the official{" "}
         <a
           href="https://rchiips.org/nfhs/"
           target="_blank"

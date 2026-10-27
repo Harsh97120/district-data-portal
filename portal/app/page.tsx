@@ -118,7 +118,7 @@ export default async function HomePage() {
               </div>
               <div>
                 <span className="text-xl font-bold text-white tracking-tight">
-                  NFHS-5 (2019–21)
+                  NFHS-5 (2019-21) & NFHS-6 (2023-24)
                 </span>
                 <span className="text-gray-400 text-[11px] font-medium block mt-1 tracking-wider uppercase">
                   Survey period
@@ -172,7 +172,7 @@ export default async function HomePage() {
               {/* Action row */}
               <div className="pt-4 mt-5 border-t border-[#262A3B] flex items-center justify-between gap-3">
                 <span className="text-xs text-gray-400 font-medium">
-                  {stateCount !== null ? `${stateCount} States & UTs mapped` : null}
+                  28 States & 8 Union Territories mapped
                 </span>
                 <Link
                   href="/map"

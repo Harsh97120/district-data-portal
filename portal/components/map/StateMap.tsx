@@ -38,6 +38,11 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
+  const [hoveredDistrict, setHoveredDistrict] = useState<{
+    name: string;
+    mpiHcr: number | null | undefined;
+    color: string;
+  } | null>(null);
   const stateOutlineLayerRef  = useRef<LeafletGeoJSON | null>(null);
 
   const getDistrictFeatureStyle = useCallback(
@@ -160,8 +165,14 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
                 });
               }
               l.bringToFront();
+              setHoveredDistrict({
+                name,
+                mpiHcr,
+                color: getMpiChoroplethColor(mpiHcr),
+              });
             },
             mouseout: () => {
+              setHoveredDistrict(null);
               updateStyles(selectedDistrictId);
               if (stateOutlineLayerRef.current) {
                 stateOutlineLayerRef.current.bringToFront();
@@ -171,21 +182,21 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
               onDistrictSelect(data ?? null);
             },
           });
-
-          const textColor = theme === "dark" ? "#F0F0F0" : "#111827";
-          const titleColor = theme === "dark" ? "#FFFFFF" : "#111827";
-          const tooltipBg = theme === "dark" ? "#1A1D27" : "#FFFFFF";
-          const tooltipBorder = theme === "dark" ? "#2D3148" : "#E5E7EB";
-
-          const tooltipContent = `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5)">
-              <div style="font-size:13px;font-weight:700;color:${titleColor}">${name}</div>
-              <div style="font-size:11px;font-weight:600;color:#FFA726;margin-top:2px">
-                MPI Headcount: <b>${mpiHcr !== null && mpiHcr !== undefined ? `${mpiHcr.toFixed(2)}%` : "No data"}</b>
+          const fillColor = getMpiChoroplethColor(mpiHcr);
+          const tooltipContent = `
+            <div style="font-family:Inter,sans-serif;padding:5px 9px;font-size:11px;color:#F0F0F0;background:rgba(20,23,34,0.92);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.18);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.6);white-space:nowrap;pointer-events:none">
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background-color:${fillColor};border:1px solid rgba(255,255,255,0.3);flex-shrink:0"></span>
+                <span style="font-size:12px;font-weight:700;color:#FFFFFF;letter-spacing:0.2px">${name}</span>
               </div>
-              <div style="font-size:10px;color:#9CA3AF;margin-top:3px">Click to view details →</div>
+              <div style="font-size:11px;font-weight:600;color:#FFA726;margin-top:2px">
+                MPI: <b>${mpiHcr !== null && mpiHcr !== undefined ? `${mpiHcr.toFixed(2)}%` : "No data"}</b>
+              </div>
             </div>`;
 
           featureLayer.bindTooltip(tooltipContent, {
+            direction: "top",
+            offset: [0, -16],
             sticky: true,
             opacity: 1,
             className: "leaflet-tooltip-custom",
@@ -274,35 +285,6 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
         }
       }, 150);
     }
-
-    const layer = geoLayerRef.current;
-    const districtMap = districtMapRef.current;
-    const mpiRecords = mpiRecordsRef.current;
-    if (!layer || !districtMap) return;
-
-    layer.eachLayer((featureLayer: any) => {
-      const props = featureLayer.feature?.properties as DistrictGeoProps | undefined;
-      if (!props) return;
-      const name = getDistrictName(props);
-      const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
-      const data = districtMap.get(normalise(name)) ?? districtMap.get(slug(name));
-      const mpiHcr = getDistrictMpiHcr(data?.district_id, name, stateCode, mpiRecords);
-
-      const textColor = theme === "dark" ? "#F0F0F0" : "#111827";
-      const titleColor = theme === "dark" ? "#FFFFFF" : "#111827";
-      const tooltipBg = theme === "dark" ? "#1A1D27" : "#FFFFFF";
-      const tooltipBorder = theme === "dark" ? "#2D3148" : "#E5E7EB";
-
-      const tooltipContent = `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5)">
-          <div style="font-size:13px;font-weight:700;color:${titleColor}">${name}</div>
-          <div style="font-size:11px;font-weight:600;color:#FFA726;margin-top:2px">
-            MPI Headcount: <b>${mpiHcr !== null && mpiHcr !== undefined ? `${mpiHcr.toFixed(2)}%` : "No data"}</b>
-          </div>
-          <div style="font-size:10px;color:#9CA3AF;margin-top:3px">Click to view details →</div>
-        </div>`;
-
-      featureLayer.setTooltipContent(tooltipContent);
-    });
   }, [theme, selectedDistrictId, stateCode, updateStyles]);
 
   return (
@@ -319,6 +301,25 @@ export default function StateMap({ stateCode, onDistrictSelect, selectedDistrict
           <p className="text-gray-400 text-sm whitespace-pre-line max-w-sm">{error}</p>
         </div>
       )}
+
+      {/* Non-obstructive Floating Hover Information Pill (Fixed at top-center, never covers districts) */}
+      {hoveredDistrict && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 bg-[#1A1D27]/95 backdrop-blur-md border border-orange-500/40 rounded-full text-xs text-white shadow-xl flex items-center gap-2.5 animate-fade-in pointer-events-none select-none max-w-[90%] sm:max-w-max">
+          <span
+            className="w-2.5 h-2.5 rounded-full flex-shrink-0 border border-white/20 shadow-xs"
+            style={{ backgroundColor: hoveredDistrict.color }}
+          />
+          <span className="font-bold text-white tracking-wide truncate">{hoveredDistrict.name}</span>
+          <span className="text-gray-500">·</span>
+          <span className="text-orange-400 font-semibold font-mono whitespace-nowrap">
+            {hoveredDistrict.mpiHcr !== null && hoveredDistrict.mpiHcr !== undefined
+              ? `MPI: ${hoveredDistrict.mpiHcr.toFixed(2)}%`
+              : "No MPI data"}
+          </span>
+          <span className="text-gray-400 font-normal whitespace-nowrap hidden sm:inline">· Click to view details</span>
+        </div>
+      )}
+
       <div ref={containerRef} className="w-full h-full min-h-[450px]" />
     </div>
   );

@@ -191,10 +191,46 @@ export default function AboutPage() {
 
           <div className="space-y-3 text-sm sm:text-base text-gray-300 leading-relaxed max-w-3xl">
             <p>
-              NFHS stands for the <strong className="font-bold text-white">National Family Health Survey</strong>. It is a large survey conducted across India to collect information about people&apos;s health and family well-being. It covers topics such as health, nutrition, women and children, and access to healthcare.
+              NFHS stands for the <strong className="font-bold text-white">National Family Health Survey</strong>. It is a large survey conducted across India by the Ministry of Health and Family Welfare (MoHFW) to collect information about people&apos;s health, nutrition, and family well-being.
             </p>
             <p>
-              The survey provides information about different states and districts. This website uses NFHS data to help users explore district-level information, understand survey results, and compare available data between districts and states.
+              The survey provides critical public health metrics for different states and districts, helping users examine district-level health trends, women&apos;s welfare, child vaccination, and healthcare access.
+            </p>
+          </div>
+        </section>
+
+        <hr className="border-[#2D3148]" />
+
+        {/* ── What is NITI Aayog & MPI? ── */}
+        <section className="space-y-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            What is NITI Aayog &amp; MPI?
+          </h2>
+
+          <div className="space-y-3 text-sm sm:text-base text-gray-300 leading-relaxed max-w-3xl">
+            <p>
+              <strong className="font-bold text-white">NITI Aayog</strong> (National Institution for Transforming India) is the Government of India&apos;s premier policy think tank. It publishes the official <strong className="font-bold text-white">National Multidimensional Poverty Index (MPI)</strong>.
+            </p>
+            <p>
+              The MPI measures overlapping deprivations across health, education, and standard of living. This portal displays the district MPI Headcount Ratio (HCR) to provide an authoritative benchmark of multidimensional poverty across India&apos;s states and districts.
+            </p>
+          </div>
+        </section>
+
+        <hr className="border-[#2D3148]" />
+
+        {/* ── What is the Census of India? ── */}
+        <section className="space-y-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            What is the Census of India?
+          </h2>
+
+          <div className="space-y-3 text-sm sm:text-base text-gray-300 leading-relaxed max-w-3xl">
+            <p>
+              The <strong className="font-bold text-white">Census of India</strong>, conducted by the Office of the Registrar General and Census Commissioner under the Ministry of Home Affairs, is the foundational administrative headcount and demographic record of the country.
+            </p>
+            <p>
+              It provides the official demographic baseline data used across this portal—including total district population counts, household numbers, literacy benchmarks, and workforce participation rates.
             </p>
           </div>
         </section>
@@ -209,10 +245,10 @@ export default function AboutPage() {
 
           <div className="space-y-3 text-sm sm:text-base text-gray-300 leading-relaxed max-w-3xl">
             <p>
-              The portal uses data from the NFHS survey reports and fact sheets. It presents available information in a simple format using maps, charts, and district dashboards.
+              The portal integrates data from official Indian public data sources: the Ministry of Health & Family Welfare (MoHFW) National Family Health Surveys (NFHS-5 & NFHS-6), NITI Aayog National Multidimensional Poverty Index (MPI), and the Census of India. It presents available information in a simple format using maps, charts, and district dashboards.
             </p>
             <p>
-              The values shown on the website come from the available survey datasets. Some indicators or districts may not have data available. Survey results describe the period in which the survey was conducted and may not represent the current situation.
+              The values shown on the website come from these official government datasets. Some indicators or districts may not have data available. Survey results describe the period in which the survey was conducted and may not represent the current situation.
             </p>
             <div className="pt-1">
               <p className="text-sm font-medium text-white mb-2">
@@ -224,6 +260,9 @@ export default function AboutPage() {
                 </li>
                 <li>
                   <strong className="text-white font-medium">NFHS-6:</strong> 2023–24
+                </li>
+                <li>
+                  <strong className="text-white font-medium">NITI Aayog MPI &amp; Census:</strong> National Baseline Report
                 </li>
               </ul>
             </div>

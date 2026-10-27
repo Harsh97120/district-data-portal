@@ -380,16 +380,6 @@ export default function DistrictComparison({
           <div className="flex items-center gap-1 bg-[#0F1117] border border-[#2D3148] p-1 rounded-xl shadow-inner">
             <button
               type="button"
-              onClick={() => setActivePeriod("NFHS-6")}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${activePeriod === "NFHS-6"
-                ? "bg-[#1A1D27] text-orange-400 border border-[#2D3148] shadow-sm"
-                : "text-gray-400 hover:text-white border border-transparent"
-                }`}
-            >
-              NFHS-6 (2023–24)
-            </button>
-            <button
-              type="button"
               onClick={() => setActivePeriod("NFHS-5")}
               className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${activePeriod === "NFHS-5"
                 ? "bg-[#1A1D27] text-orange-400 border border-[#2D3148] shadow-sm"
@@ -397,6 +387,16 @@ export default function DistrictComparison({
                 }`}
             >
               NFHS-5 (2019–21)
+            </button>
+            <button
+              type="button"
+              onClick={() => setActivePeriod("NFHS-6")}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${activePeriod === "NFHS-6"
+                ? "bg-[#1A1D27] text-orange-400 border border-[#2D3148] shadow-sm"
+                : "text-gray-400 hover:text-white border border-transparent"
+                }`}
+            >
+              NFHS-6 (2023–24)
             </button>
           </div>
         </div>

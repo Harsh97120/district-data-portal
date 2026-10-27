@@ -10,14 +10,14 @@ interface MPIChoroplethLegendProps {
 
 export default function MPIChoroplethLegend({
   hasMissingData = false,
-  totalItemsLabel = "37 States & UTs",
+  totalItemsLabel = "28 States & 8 UTs",
 }: MPIChoroplethLegendProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
     <div
       className="bg-[#1A1D27]/95 backdrop-blur-md border border-[#2D3148] rounded-2xl shadow-2xl transition-all duration-300 overflow-hidden select-none"
-      style={{ width: collapsed ? "auto" : "240px" }}
+      style={{ width: collapsed ? "auto" : "190px" }}
     >
       {/* Header bar with toggle */}
       <div
@@ -44,9 +44,8 @@ export default function MPIChoroplethLegend({
           className="text-gray-400 hover:text-white p-1 rounded-md hover:bg-white/5 transition-colors"
         >
           <svg
-            className={`w-3.5 h-3.5 transform transition-transform duration-200 ${
-              collapsed ? "rotate-180" : ""
-            }`}
+            className={`w-3.5 h-3.5 transform transition-transform duration-200 ${collapsed ? "rotate-180" : ""
+              }`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -80,36 +79,26 @@ export default function MPIChoroplethLegend({
             {MPI_CHOROPLETH_RANGES.map((step) => (
               <div
                 key={step.label}
-                className="flex items-center justify-between text-xs py-0.5 px-1 rounded hover:bg-white/5 transition-colors"
+                className="flex items-center gap-2.5 text-xs py-0.5 px-1 rounded hover:bg-white/5 transition-colors"
               >
-                <div className="flex items-center gap-2">
-                  <span
-                    className="w-4 h-3 rounded-[3px] flex-none border border-black/30 shadow-xs"
-                    style={{ backgroundColor: step.color }}
-                  />
-                  <span className="text-[11px] font-semibold text-gray-200 font-mono">
-                    {step.label}
-                  </span>
-                </div>
-                <span className="text-[10px] text-gray-400 font-medium">
-                  {step.sublabel}
+                <span
+                  className="w-4 h-3 rounded-[3px] flex-none border border-black/30 shadow-xs"
+                  style={{ backgroundColor: step.color }}
+                />
+                <span className="text-[11px] font-semibold text-gray-200 font-mono">
+                  {step.label}
                 </span>
               </div>
             ))}
 
             {hasMissingData && (
-              <div className="flex items-center justify-between text-xs py-0.5 px-1 rounded hover:bg-white/5 transition-colors">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="w-4 h-3 rounded-[3px] flex-none border border-black/30 shadow-xs"
-                    style={{ backgroundColor: "#374151" }}
-                  />
-                  <span className="text-[11px] font-semibold text-gray-400 font-mono">
-                    No data
-                  </span>
-                </div>
-                <span className="text-[10px] text-gray-500 font-medium">
-                  Missing data
+              <div className="flex items-center gap-2.5 text-xs py-0.5 px-1 rounded hover:bg-white/5 transition-colors">
+                <span
+                  className="w-4 h-3 rounded-[3px] flex-none border border-black/30 shadow-xs"
+                  style={{ backgroundColor: "#374151" }}
+                />
+                <span className="text-[11px] font-semibold text-gray-400 font-mono">
+                  No data
                 </span>
               </div>
             )}
@@ -119,7 +108,7 @@ export default function MPIChoroplethLegend({
           <div className="pt-2 border-t border-[#2D3148]/60 flex items-center justify-between text-[9px] text-gray-400">
             <span className="flex items-center gap-1">
               <span className="text-orange-400">●</span>
-              <span>NITI Aayog / NFHS-5</span>
+              <span>NITI Aayog & Census</span>
             </span>
             <span className="text-gray-400 font-mono">{totalItemsLabel}</span>
           </div>

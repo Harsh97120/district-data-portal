@@ -39,7 +39,7 @@ export default function IndiaMap({ onMapReady }: IndiaMapProps) {
 
   const { theme } = useTheme();
   const [loading, setLoading]           = useState(true);
-  const [hoveredState, setHoveredState] = useState<{ name: string; mpi: number | null } | null>(null);
+  const [hoveredState, setHoveredState] = useState<{ name: string; mpi: number | null; color: string } | null>(null);
   const [error, setError]               = useState<string | null>(null);
 
   /** Fly back to the full-India view */
@@ -105,7 +105,7 @@ export default function IndiaMap({ onMapReady }: IndiaMapProps) {
 
           featureLayer.on({
             mouseover: (e) => {
-              setHoveredState({ name, mpi });
+              setHoveredState({ name, mpi, color: getMpiChoroplethColor(mpi) });
               const l = e.target;
               l.setStyle(buildStateStyle(name, true, theme));
               l.bringToFront();
@@ -119,20 +119,25 @@ export default function IndiaMap({ onMapReady }: IndiaMapProps) {
             },
           });
 
-          const textColor = theme === "dark" ? "#F0F0F0" : "#111827";
-          const tooltipBg = theme === "dark" ? "#1A1D27" : "#FFFFFF";
-          const tooltipBorder = theme === "dark" ? "#2D3148" : "#E5E7EB";
-
-          featureLayer.bindTooltip(
-            `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5)">
-              <div style="font-size:13px;font-weight:700;color:${textColor}">${name}</div>
-              <div style="font-size:11px;font-weight:600;color:#FFA726;margin-top:2px">
-                MPI Headcount: <b>${mpi !== null ? `${mpi.toFixed(2)}%` : "N/A"}</b>
+          const fillColor = getMpiChoroplethColor(mpi);
+          const tooltipContent = `
+            <div style="font-family:Inter,sans-serif;padding:5px 9px;font-size:11px;color:#F0F0F0;background:rgba(20,23,34,0.92);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.18);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.6);white-space:nowrap;pointer-events:none">
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background-color:${fillColor};border:1px solid rgba(255,255,255,0.3);flex-shrink:0"></span>
+                <span style="font-size:12px;font-weight:700;color:#FFFFFF;letter-spacing:0.2px">${name}</span>
               </div>
-              <div style="font-size:10px;color:#9CA3AF;margin-top:3px">Click to explore districts →</div>
-            </div>`,
-            { sticky: true, opacity: 1, className: "leaflet-tooltip-custom" }
-          );
+              <div style="font-size:11px;font-weight:600;color:#FFA726;margin-top:2px">
+                MPI: <b>${mpi !== null ? `${mpi.toFixed(2)}%` : "No data"}</b>
+              </div>
+            </div>`;
+
+          featureLayer.bindTooltip(tooltipContent, {
+            direction: "top",
+            offset: [0, -16],
+            sticky: true,
+            opacity: 1,
+            className: "leaflet-tooltip-custom",
+          });
         },
       }).addTo(map);
 
@@ -190,22 +195,6 @@ export default function IndiaMap({ onMapReady }: IndiaMapProps) {
       if (!feature) return;
       const name = getStateName(feature.properties as StateGeoProps);
       featureLayer.setStyle(buildStateStyle(name, false, theme));
-
-      // Update tooltips dynamically
-      const textColor = theme === "dark" ? "#F0F0F0" : "#111827";
-      const tooltipBg = theme === "dark" ? "#1A1D27" : "#FFFFFF";
-      const tooltipBorder = theme === "dark" ? "#2D3148" : "#E5E7EB";
-      const mpi = getStateMpi(name);
-
-      featureLayer.setTooltipContent(
-        `<div style="font-family:Inter,sans-serif;padding:6px 10px;font-size:12px;color:${textColor};background:${tooltipBg};border:1px solid ${tooltipBorder};border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5)">
-          <div style="font-size:13px;font-weight:700;color:${textColor}">${name}</div>
-          <div style="font-size:11px;font-weight:600;color:#FFA726;margin-top:2px">
-            MPI Headcount: <b>${mpi !== null ? `${mpi.toFixed(2)}%` : "N/A"}</b>
-          </div>
-          <div style="font-size:10px;color:#9CA3AF;margin-top:3px">Click to explore districts →</div>
-        </div>`
-      );
     });
   }, [theme]);
 
@@ -224,15 +213,19 @@ export default function IndiaMap({ onMapReady }: IndiaMapProps) {
         </div>
       )}
 
-      {/* Hovered state action chip */}
+      {/* Non-obstructive Floating Hover Information Pill (Fixed at top-center, never covers states) */}
       {hoveredState && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 bg-[#1A1D27]/95 backdrop-blur border border-orange-500/40 rounded-full text-xs text-orange-400 font-semibold pointer-events-none flex items-center gap-2 shadow-xl animate-fade-in">
-          <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-          <span className="text-white font-bold">{hoveredState.name}</span>
-          <span className="text-orange-300 font-mono">
-            {hoveredState.mpi !== null ? `${hoveredState.mpi.toFixed(1)}% MPI` : ""}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 bg-[#1A1D27]/95 backdrop-blur-md border border-orange-500/40 rounded-full text-xs text-white shadow-xl flex items-center gap-2.5 animate-fade-in pointer-events-none select-none max-w-[90%] sm:max-w-max">
+          <span
+            className="w-2.5 h-2.5 rounded-full flex-shrink-0 border border-white/20 shadow-xs"
+            style={{ backgroundColor: hoveredState.color }}
+          />
+          <span className="font-bold text-white tracking-wide truncate">{hoveredState.name}</span>
+          <span className="text-gray-500">·</span>
+          <span className="text-orange-400 font-semibold font-mono whitespace-nowrap">
+            {hoveredState.mpi !== null ? `MPI: ${hoveredState.mpi.toFixed(2)}%` : "No MPI data"}
           </span>
-          <span className="text-gray-400 font-normal">· Click to explore</span>
+          <span className="text-gray-400 font-normal whitespace-nowrap hidden sm:inline">· Click to explore districts</span>
         </div>
       )}
 

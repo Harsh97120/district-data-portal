@@ -13,7 +13,7 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-xs text-gray-400">
-              A student project by Naitik Patel · Dhirubhai Ambani University (DA-IICT), Gandhinagar
+              A student project by Naitik Patel and Harsh Patel · Dhirubhai Ambani University (DA-IICT), Gandhinagar
             </p>
           </div>
 
@@ -29,16 +29,16 @@ export default function Footer() {
             </Link>
             <span className="text-gray-600">|</span>
             <span>
-              Data:{" "}
+              Data Sources:{" "}
               <a
                 href="https://rchiips.org/nfhs/nfhs5.shtml"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-orange-400 hover:underline"
               >
-                NFHS-5 (2019–21)
-              </a>
-              , MoHFW
+                NFHS-5 & NFHS-6
+              </a>{" "}
+              (MoHFW), NITI Aayog (MPI) & Census of India
             </span>
           </div>
         </div>

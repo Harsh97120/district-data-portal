@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   Radar,
   RadarChart,
@@ -67,7 +66,6 @@ function formatPopulation(num: number): string {
 
 export default function DistrictFingerprint({ district }: DistrictFingerprintProps) {
   const { theme } = useTheme();
-  const [showMethodology, setShowMethodology] = useState(false);
 
   // Look up district in official MPI dataset
   const mpiInfo = mpiDataset.districts[district.district_id] ||
@@ -142,31 +140,7 @@ export default function DistrictFingerprint({ district }: DistrictFingerprintPro
             Exact multidimensional poverty headcount ratio and core socio-economic indicators
           </p>
         </div>
-        <button
-          onClick={() => setShowMethodology(!showMethodology)}
-          className="text-xs text-orange-400 hover:text-orange-300 font-medium flex items-center gap-1 transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {showMethodology ? "Hide Methodology" : "View Methodology"}
-        </button>
       </div>
-
-      {/* Methodology Collapsible */}
-      {showMethodology && (
-        <div className="mb-6 p-4 rounded-xl bg-[#0F1117] border border-[#2D3148] text-xs text-gray-400 space-y-2 animate-fade-in">
-          <p className="font-semibold text-white">Methodology & Official Data Sources</p>
-          <p>
-            1. <strong className="text-gray-200">MPI HCR (Headcount Ratio)</strong>: Published by{" "}
-            <span className="text-orange-400 font-medium">NITI Aayog</span> under the National Multidimensional Poverty Index.
-            It measures the percentage of the district population deprived in 33.3% or more weighted indicators across Health, Education, and Standard of Living.
-          </p>
-          <p>
-            2. <strong className="text-gray-200">Demographics & Workforce</strong>: District population, total households, effective literacy, and workforce participation are extracted from official Census statistical indicators.
-          </p>
-        </div>
-      )}
 
       {/* Main Grid: Radar Chart + 4 Exact Metric Cards */}
       <div className="flex flex-col lg:flex-row items-center gap-8 justify-between">

@@ -3,9 +3,6 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import type { DistrictMetrics } from "@/lib/types/district";
-import { PRIMARY_METRICS } from "@/lib/constants";
-import MetricCard from "@/components/district/MetricCard";
-import DemographicsChart from "@/components/district/DemographicsChart";
 
 interface DistrictPanelProps {
   district: DistrictMetrics | null;
@@ -39,8 +36,8 @@ export default function DistrictPanel({ district, onClose }: DistrictPanelProps)
       <div
         ref={panelRef}
         className="
-          fixed inset-y-0 right-0 z-[1002] w-full sm:w-[420px]
-          lg:static lg:z-10 lg:w-[440px] xl:w-[480px] lg:h-full lg:min-h-0
+          fixed inset-y-0 right-0 z-[1002] w-full sm:w-[360px]
+          lg:static lg:z-10 lg:w-[350px] xl:w-[360px] lg:h-full lg:min-h-0
           bg-[#1A1D27] border-l border-[#2D3148]
           flex flex-col shadow-2xl lg:shadow-none
           flex-shrink-0 animate-fade-in
@@ -76,9 +73,6 @@ export default function DistrictPanel({ district, onClose }: DistrictPanelProps)
           {/* Tags */}
           <div className="flex flex-wrap gap-2 mt-3">
             <span className="px-2.5 py-0.5 text-[11px] rounded-full bg-[#0F1117] border border-[#2D3148] text-gray-400 font-medium">
-              {district.metadata?.source ?? "NFHS-5"} · {district.metadata?.year ?? "2019-21"}
-            </span>
-            <span className="px-2.5 py-0.5 text-[11px] rounded-full bg-[#0F1117] border border-[#2D3148] text-gray-400 font-medium">
               ID: {district.district_id}
             </span>
           </div>
@@ -86,31 +80,8 @@ export default function DistrictPanel({ district, onClose }: DistrictPanelProps)
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
-          {/* Metric Cards */}
-          <section>
-            <h3 className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-3">
-              Key Indicators
-            </h3>
-            <div className="grid grid-cols-2 gap-2.5">
-              {PRIMARY_METRICS.map((field, i) => (
-                <MetricCard
-                  key={field}
-                  field={field}
-                  value={district[field as keyof DistrictMetrics] as number | null}
-                  highlighted={i === 0}
-                />
-              ))}
-            </div>
-          </section>
-
-          {/* Bar Chart */}
-          <section>
-            <DemographicsChart district={district} />
-          </section>
-
-          {/* Source note */}
-          <p className="text-[11px] text-gray-500 leading-normal">
-            Source: {district.metadata?.source ?? "NFHS-5"} ({district.metadata?.year ?? "2019-21"}), Ministry of Health & Family Welfare, Government of India.
+          <p className="text-xs text-gray-400 leading-relaxed">
+            Click below to explore health, education, nutrition and women related indicators for {district.district_name}.
           </p>
 
           {/* Deep link button */}
@@ -120,6 +91,11 @@ export default function DistrictPanel({ district, onClose }: DistrictPanelProps)
           >
             View Full District Intelligence Dashboard →
           </Link>
+
+          {/* Source note */}
+          <p className="text-[10px] text-gray-500 leading-normal text-center">
+            Sources: MoHFW, NITI Aayog (MPI) & Census of India
+          </p>
         </div>
       </div>
     </>
